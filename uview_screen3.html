@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@200;400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#00e1ef",
+                        "error-container": "#b92902",
+                        "surface-container-low": "#131313",
+                        "outline": "#767575",
+                        "secondary": "#32ff00",
+                        "secondary-container": "#116e00",
+                        "inverse-primary": "#a14100",
+                        "on-tertiary-fixed-variant": "#006066",
+                        "on-error-container": "#ffd2c8",
+                        "on-background": "#ffffff",
+                        "surface-bright": "#2c2c2c",
+                        "on-primary-container": "#401500",
+                        "on-tertiary-container": "#00555b",
+                        "surface-dim": "#0e0e0e",
+                        "on-error": "#450900",
+                        "error": "#ff7351",
+                        "on-tertiary-fixed": "#004145",
+                        "on-secondary": "#0c5c00",
+                        "tertiary-fixed": "#12f1ff",
+                        "primary-container": "#ff7a2f",
+                        "surface-container-highest": "#262626",
+                        "on-primary": "#531e00",
+                        "tertiary-dim": "#00e1ef",
+                        "surface-container": "#1a1a1a",
+                        "error-dim": "#d53d18",
+                        "surface-variant": "#262626",
+                        "tertiary-container": "#12f1ff",
+                        "tertiary": "#9cf7ff",
+                        "inverse-surface": "#fcf9f8",
+                        "on-surface": "#ffffff",
+                        "primary": "#ff9159",
+                        "on-surface-variant": "#adaaaa",
+                        "secondary-fixed-dim": "#2eef00",
+                        "surface-container-lowest": "#000000",
+                        "outline-variant": "#484847",
+                        "on-primary-fixed": "#000000",
+                        "secondary-fixed": "#32ff00",
+                        "secondary-dim": "#2eef00",
+                        "surface-container-high": "#20201f",
+                        "primary-fixed-dim": "#f66700",
+                        "primary-dim": "#ff7524",
+                        "surface-tint": "#ff9159",
+                        "on-primary-fixed-variant": "#4f1c00",
+                        "on-tertiary": "#005f65",
+                        "on-secondary-fixed-variant": "#0f6700",
+                        "on-secondary-container": "#e7ffd9",
+                        "primary-fixed": "#ff7a2f",
+                        "on-secondary-fixed": "#074600",
+                        "surface": "#0e0e0e",
+                        "background": "#0e0e0e",
+                        "inverse-on-surface": "#565555"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "display": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .noise-overlay {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+        .carbon-pattern {
+            background-color: #0e0e0e;
+            background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+            background-size: 4px 4px;
+        }
+        .mechanical-bevel {
+            box-shadow: inset 2px 2px 0px rgba(255,255,255,0.05), inset -2px -2px 0px rgba(0,0,0,0.5);
+        }
+        .glow-cyan { text-shadow: 0 0 10px rgba(0, 238, 252, 0.5); }
+        .glow-orange { text-shadow: 0 0 10px rgba(255, 107, 0, 0.5); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen selection:bg-primary selection:text-on-primary overflow-x-hidden">
+<div class="fixed inset-0 noise-overlay z-[100]"></div>
+<!-- Top Navigation -->
+<nav class="bg-[#0e0e0e]/90 backdrop-blur-md text-[#FF6B00] font-['Space_Grotesk'] font-bold italic uppercase tracking-tighter docked full-width top-0 z-50 border-b-4 border-[#1a1a1a] shadow-[0_4px_20px_rgba(255,107,0,0.1)] flex justify-between items-center px-6 py-4 w-full sticky">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-all duration-150 hover:bg-[#FF6B00]/10 p-1">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-[#FF6B00] font-black italic tracking-tighter text-xl">TACTICAL_FEED_01</h1>
+</div>
+<button class="active:scale-95 transition-all duration-150 hover:bg-[#FF6B00]/10 p-1">
+<span class="material-symbols-outlined text-2xl" data-weight="fill">settings_input_component</span>
+</button>
+</nav>
+<main class="max-w-7xl mx-auto px-4 py-6 mb-24 space-y-8">
+<!-- Live Feed Section -->
+<section class="relative group">
+<div class="relative aspect-video w-full overflow-hidden border-4 border-surface-container-highest shadow-2xl mechanical-bevel rounded-sm">
+<img alt="Front Door Live Stream" class="w-full h-full object-cover grayscale opacity-80 mix-blend-screen bg-black" data-alt="CCTV security footage of a modern suburban front entryway at dusk with sharp shadows and high contrast security camera aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiGzZxDdKdDP12qmkEnZn0237I_jhYMpLIDbEFgpYPFyb50Ie8GaaPlTwKceqAuKfnbUPaJtmIhH9LJcD_sdO6TU463qYSfLI1tbq_iQT0PhtLJIs2XB2ZwnPr03mPIe7hfjQh0bPPT9D1tAjcLAleOstyvwG2v07czHZr39qCS5F31XqWphyS0ok9i4xjiUv_K0VGxRtq92RAE2A8mzCkHga_9VoirlHGxXkZ3exAyXI3nOs98-LNk_m0KhXBBskAXc63M-TVo3X3"/>
+<!-- HUD Overlays -->
+<div class="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between font-headline italic font-bold">
+<div class="flex justify-between items-start">
+<div class="bg-surface-container-lowest/80 border-l-4 border-primary px-3 py-1">
+<div class="text-[10px] text-primary tracking-widest uppercase">Cam_ID</div>
+<div class="text-on-surface text-lg glow-cyan">FRONT DOOR - EXTERIOR</div>
+</div>
+<div class="text-right space-y-1">
+<div class="bg-surface-container-lowest/80 px-2 py-0.5 text-[10px] text-secondary border-r-2 border-secondary">
+                                LIVE FEED // 1080P_HD
+                            </div>
+<div class="bg-surface-container-lowest/80 px-2 py-0.5 text-[10px] text-tertiary border-r-2 border-tertiary">
+                                AES_256_ENCRYPTED
+                            </div>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div class="grid grid-cols-2 gap-4 bg-surface-container-lowest/60 p-2 backdrop-blur-sm border-t border-outline-variant/20">
+<div>
+<div class="text-[8px] text-on-surface-variant uppercase tracking-tighter">Bitrate</div>
+<div class="text-sm text-tertiary">4.5 MBPS</div>
+</div>
+<div>
+<div class="text-[8px] text-on-surface-variant uppercase tracking-tighter">Latency</div>
+<div class="text-sm text-tertiary">42 MS</div>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-error/20 px-3 py-1 border border-error animate-pulse">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="text-[10px] text-error uppercase font-black">REC</span>
+</div>
+</div>
+</div>
+<!-- Corner Brackets (Visual Element) -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary/40 m-2"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary/40 m-2"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary/40 m-2"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary/40 m-2"></div>
+</div>
+</section>
+<!-- Tactical Action Strip -->
+<section class="grid grid-cols-3 md:grid-cols-6 gap-2">
+<button class="flex flex-col items-center justify-center bg-surface-container hover:bg-surface-container-highest p-4 transition-all active:scale-95 border-b-4 border-outline-variant group">
+<span class="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">photo_camera</span>
+<span class="text-[10px] font-headline italic font-bold mt-2 text-on-surface-variant">SNAPSHOT</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-surface-container hover:bg-surface-container-highest p-4 transition-all active:scale-95 border-b-4 border-error relative overflow-hidden group">
+<div class="absolute inset-0 bg-error/10 animate-pulse"></div>
+<span class="material-symbols-outlined text-error z-10">fiber_manual_record</span>
+<span class="text-[10px] font-headline italic font-bold mt-2 text-error z-10">RECORDING</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-surface-container hover:bg-surface-container-highest p-4 transition-all active:scale-95 border-b-4 border-outline-variant group">
+<span class="material-symbols-outlined text-secondary group-hover:rotate-180 transition-transform duration-500">sync</span>
+<span class="text-[10px] font-headline italic font-bold mt-2 text-on-surface-variant">RECONNECT</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-surface-container hover:bg-surface-container-highest p-4 transition-all active:scale-95 border-b-4 border-outline-variant group">
+<span class="material-symbols-outlined text-on-surface">volume_up</span>
+<span class="text-[10px] font-headline italic font-bold mt-2 text-on-surface-variant">MUTE</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-surface-container hover:bg-surface-container-highest p-4 transition-all active:scale-95 border-b-4 border-outline-variant group">
+<span class="material-symbols-outlined text-primary" data-weight="fill">star</span>
+<span class="text-[10px] font-headline italic font-bold mt-2 text-on-surface-variant">FAVORITE</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-surface-container hover:bg-surface-container-highest p-4 transition-all active:scale-95 border-b-4 border-outline-variant group">
+<span class="material-symbols-outlined text-on-surface">tune</span>
+<span class="text-[10px] font-headline italic font-bold mt-2 text-on-surface-variant">SETTINGS</span>
+</button>
+</section>
+<!-- Tab System -->
+<section class="border-b-4 border-surface-container-highest flex gap-8">
+<button class="pb-4 relative group">
+<span class="font-headline font-black italic text-lg text-primary tracking-tighter">LIVE</span>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_#ff9159]"></div>
+</button>
+<button class="pb-4 relative group">
+<span class="font-headline font-black italic text-lg text-on-surface-variant hover:text-on-surface transition-colors tracking-tighter">DETAILS</span>
+</button>
+<button class="pb-4 relative group">
+<span class="font-headline font-black italic text-lg text-on-surface-variant hover:text-on-surface transition-colors tracking-tighter">EVENTS</span>
+</button>
+<button class="pb-4 relative group">
+<span class="font-headline font-black italic text-lg text-on-surface-variant hover:text-on-surface transition-colors tracking-tighter">DIAGNOSTICS</span>
+</button>
+</section>
+<!-- Content Area -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Stream Performance Card -->
+<div class="bg-surface-container p-6 relative border-l-4 border-tertiary group overflow-hidden">
+<div class="absolute top-2 right-2 flex gap-1 opacity-20">
+<div class="w-1.5 h-1.5 bg-outline"></div>
+<div class="w-1.5 h-1.5 bg-outline"></div>
+</div>
+<h3 class="font-headline font-black italic text-tertiary text-sm tracking-widest mb-6">STREAM_PERFORMANCE</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-on-surface-variant font-bold">PROTOCOL_TYPE</span>
+<span class="text-sm font-headline italic font-bold text-on-surface">RTSP_SECURE</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-on-surface-variant font-bold">BITRATE_ACTUAL</span>
+<div class="flex items-center gap-3">
+<div class="flex gap-1">
+<div class="w-2 h-4 bg-tertiary"></div>
+<div class="w-2 h-4 bg-tertiary"></div>
+<div class="w-2 h-4 bg-tertiary"></div>
+<div class="w-2 h-4 bg-tertiary"></div>
+<div class="w-2 h-4 bg-surface-variant"></div>
+</div>
+<span class="text-sm font-headline italic font-bold text-tertiary">4.5 MBPS</span>
+</div>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-on-surface-variant font-bold">FRAME_LATENCY</span>
+<span class="text-sm font-headline italic font-bold text-secondary">42MS_OPTIMAL</span>
+</div>
+<div class="flex justify-between items-center pb-2">
+<span class="text-xs text-on-surface-variant font-bold">BUFFER_STATE</span>
+<span class="text-sm font-headline italic font-bold text-on-surface">HEALTHY_STABLE</span>
+</div>
+</div>
+<!-- Fastener visuals -->
+<div class="absolute top-0 left-0 w-1 h-1 bg-outline-variant m-1"></div>
+<div class="absolute top-0 right-0 w-1 h-1 bg-outline-variant m-1"></div>
+<div class="absolute bottom-0 left-0 w-1 h-1 bg-outline-variant m-1"></div>
+<div class="absolute bottom-0 right-0 w-1 h-1 bg-outline-variant m-1"></div>
+</div>
+<!-- Camera Configuration Card -->
+<div class="bg-surface-container p-6 relative border-l-4 border-primary group">
+<div class="absolute top-2 right-2 flex gap-1 opacity-20">
+<div class="w-1.5 h-1.5 bg-outline"></div>
+<div class="w-1.5 h-1.5 bg-outline"></div>
+</div>
+<h3 class="font-headline font-black italic text-primary text-sm tracking-widest mb-6">CAMERA_CONFIGURATION</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-on-surface-variant font-bold">RESOLUTION_SET</span>
+<span class="text-sm font-headline italic font-bold text-on-surface">1920 X 1080</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-on-surface-variant font-bold">ENCODING_HW</span>
+<span class="text-sm font-headline italic font-bold text-on-surface">H.265 / HEVC</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-on-surface-variant font-bold">NIGHT_VISION</span>
+<span class="text-sm font-headline italic font-bold text-primary">AUTO_ACTIVE</span>
+</div>
+<div class="flex justify-between items-center pb-2">
+<span class="text-xs text-on-surface-variant font-bold">FIRMWARE_VER</span>
+<span class="text-sm font-headline italic font-bold text-on-surface-variant">v4.2.1-BETA</span>
+</div>
+</div>
+<!-- Fastener visuals -->
+<div class="absolute top-0 left-0 w-1 h-1 bg-outline-variant m-1"></div>
+<div class="absolute top-0 right-0 w-1 h-1 bg-outline-variant m-1"></div>
+<div class="absolute bottom-0 left-0 w-1 h-1 bg-outline-variant m-1"></div>
+<div class="absolute bottom-0 right-0 w-1 h-1 bg-outline-variant m-1"></div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 pb-safe bg-[#1a1a1a] border-t-4 border-[#262626] shadow-[0_-4px_30px_rgba(0,0,0,0.5)] z-50">
+<button class="flex flex-col items-center justify-center text-[#00EEFC]/50 px-4 py-2 hover:text-[#00EEFC] hover:bg-[#262626] active:scale-98 transition-transform duration-75">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Manrope'] font-extrabold text-[10px] tracking-[0.2em] uppercase mt-1">DASHBOARD</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#FF6B00] bg-[#FF6B00]/5 border-t-2 border-[#FF6B00] px-4 py-2 active:scale-98 transition-transform duration-75">
+<span class="material-symbols-outlined" data-icon="videocam">videocam</span>
+<span class="font-['Manrope'] font-extrabold text-[10px] tracking-[0.2em] uppercase mt-1">MONITORS</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#00EEFC]/50 px-4 py-2 hover:text-[#00EEFC] hover:bg-[#262626] active:scale-98 transition-transform duration-75">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Manrope'] font-extrabold text-[10px] tracking-[0.2em] uppercase mt-1">ARCHIVE</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#00EEFC]/50 px-4 py-2 hover:text-[#00EEFC] hover:bg-[#262626] active:scale-98 transition-transform duration-75">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-['Manrope'] font-extrabold text-[10px] tracking-[0.2em] uppercase mt-1">SYSTEM</span>
+</button>
+</nav>
+</body></html>
