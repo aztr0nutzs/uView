@@ -7,6 +7,7 @@ import com.sentinel.app.data.playback.MjpegSessionRegistry
 import com.sentinel.app.data.playback.StreamUrlResolver
 import com.sentinel.app.domain.model.CameraDevice
 import com.sentinel.app.domain.model.RecordingState
+import com.sentinel.app.domain.service.RecordingCapability
 import com.sentinel.app.domain.service.RecordingController
 import com.sentinel.app.domain.service.RecordingEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -84,15 +85,16 @@ class LocalRecordingController @Inject constructor(
                 return@withContext Result.failure(IllegalStateException("Already recording for $cameraId"))
             }
 
-            val endpoint = streamUrlResolver.resolve(camera)
-                ?: return@withContext Result.failure(IllegalStateException("No playable endpoint resolved for ${camera.name}"))
-
-            if (!streamUrlResolver.requiresMjpegRenderer(endpoint)) {
+            val capability = getRecordingCapability(camera)
+            if (!capability.supported) {
                 return@withContext Result.failure(
-                    UnsupportedOperationException(
-                        "Recording is currently implemented only for MJPEG-backed streams. " +
-                            "${camera.sourceType.name} uses ExoPlayer and has no encoded sample or recording surface pipeline."
-                    )
+                    UnsupportedOperationException(capability.reason ?: "Recording is not supported for this stream")
+                )
+            }
+
+            if (!hasActiveMjpegFrames(cameraId)) {
+                return@withContext Result.failure(
+                    IllegalStateException("Recording needs an active MJPEG live stream. Open the live feed first.")
                 )
             }
 
@@ -178,6 +180,32 @@ class LocalRecordingController @Inject constructor(
             }
         }
 
+    override suspend fun getRecordingCapability(camera: CameraDevice): RecordingCapability {
+        val endpoint = streamUrlResolver.resolve(camera)
+            ?: return RecordingCapability(
+                supported = false,
+                requiresActivePlayback = true,
+                outputFormat = null,
+                reason = "No playable stream endpoint resolved"
+            )
+
+        if (!streamUrlResolver.requiresMjpegRenderer(endpoint)) {
+            return RecordingCapability(
+                supported = false,
+                requiresActivePlayback = true,
+                outputFormat = null,
+                reason = "${camera.sourceType.displayName} uses ExoPlayer playback. Encoded sample capture is not implemented yet."
+            )
+        }
+
+        return RecordingCapability(
+            supported = true,
+            requiresActivePlayback = true,
+            outputFormat = "multipart-motion-jpeg (.mjpeg + .properties)",
+            reason = null
+        )
+    }
+
     override fun observeRecordingState(cameraId: String): kotlinx.coroutines.flow.Flow<RecordingState> =
         getStateFlow(cameraId).asStateFlow()
 
@@ -200,6 +228,9 @@ class LocalRecordingController @Inject constructor(
                 }
                 ?: emptyList()
         }
+
+    private fun hasActiveMjpegFrames(cameraId: String): Boolean =
+        mjpegSessionRegistry.hasActiveSession(cameraId)
 
     private fun writeMjpegPart(session: RecordingSession, bitmap: Bitmap) {
         val jpegBytes = ByteArrayOutputStream().use { encoded ->
