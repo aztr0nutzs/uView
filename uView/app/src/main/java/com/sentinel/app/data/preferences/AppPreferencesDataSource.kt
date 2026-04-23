@@ -32,7 +32,7 @@ data class AppPreferences(
     val networkScanEnabled: Boolean = true,
     val networkScanSubnet: String = "",  // empty = auto-detect
     val dataSaverMode: Boolean = false,
-    val appLockEnabled: Boolean = false, // future: biometric/PIN
+    val appLockEnabled: Boolean = false, // Phase 8: BiometricPrompt gate
     val diagnosticsLoggingEnabled: Boolean = false,
     val eventRetentionDays: Int = 30
 )

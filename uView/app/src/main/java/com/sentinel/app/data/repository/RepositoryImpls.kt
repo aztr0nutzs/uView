@@ -1,5 +1,6 @@
 package com.sentinel.app.data.repository
 
+import com.sentinel.app.core.security.CryptoManager
 import com.sentinel.app.data.local.dao.CameraDao
 import com.sentinel.app.data.local.dao.CameraEventDao
 import com.sentinel.app.data.local.toDomain
@@ -18,28 +19,33 @@ import javax.inject.Singleton
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CameraRepositoryImpl
+//
+// Phase 8: CryptoManager is injected to handle credential encryption on
+// save and decryption on read. All password data flows through the
+// CryptoManager — no plaintext is persisted in the Room database.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Singleton
 class CameraRepositoryImpl @Inject constructor(
-    private val cameraDao: CameraDao
+    private val cameraDao: CameraDao,
+    private val cryptoManager: CryptoManager
 ) : CameraRepository {
 
     override fun observeAllCameras(): Flow<List<CameraDevice>> =
-        cameraDao.observeAllCameras().map { list -> list.map { it.toDomain() } }
+        cameraDao.observeAllCameras().map { list -> list.map { it.toDomain(cryptoManager) } }
 
     override fun observeCamerasByRoom(room: String): Flow<List<CameraDevice>> =
-        cameraDao.observeCamerasByRoom(room).map { list -> list.map { it.toDomain() } }
+        cameraDao.observeCamerasByRoom(room).map { list -> list.map { it.toDomain(cryptoManager) } }
 
     override fun observeFavoriteCameras(): Flow<List<CameraDevice>> =
-        cameraDao.observeFavoriteCameras().map { list -> list.map { it.toDomain() } }
+        cameraDao.observeFavoriteCameras().map { list -> list.map { it.toDomain(cryptoManager) } }
 
     override suspend fun getCameraById(id: String): CameraDevice? =
-        cameraDao.getCameraById(id)?.toDomain()
+        cameraDao.getCameraById(id)?.toDomain(cryptoManager)
 
     override suspend fun saveCamera(camera: CameraDevice) {
         Timber.d("Saving camera: ${camera.id} — ${camera.name}")
-        cameraDao.insertCamera(camera.toEntity())
+        cameraDao.insertCamera(camera.toEntity(cryptoManager))
     }
 
     override suspend fun setCameraEnabled(cameraId: String, enabled: Boolean) {

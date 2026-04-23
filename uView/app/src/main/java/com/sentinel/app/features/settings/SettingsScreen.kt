@@ -1,5 +1,6 @@
 package com.sentinel.app.features.settings
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,11 +39,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sentinel.app.data.preferences.AppPreferences
@@ -66,6 +70,17 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val appLockError by viewModel.appLockError.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
+
+    // Show error toast when app lock cannot be enabled
+    LaunchedEffect(appLockError) {
+        appLockError?.let { error ->
+            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            viewModel.clearAppLockError()
+        }
+    }
 
     SettingsContent(
         settings              = settings,
@@ -81,7 +96,10 @@ fun SettingsScreen(
         onSetNetworkScan      = viewModel::setNetworkScan,
         isMonitoringRunning   = viewModel.isMonitoringServiceRunning,
         onStartMonitoring     = viewModel::startBackgroundMonitoring,
-        onStopMonitoring      = viewModel::stopBackgroundMonitoring
+        onStopMonitoring      = viewModel::stopBackgroundMonitoring,
+        onSetAppLock          = { enabled ->
+            activity?.let { viewModel.setAppLock(enabled, it) }
+        }
     )
 }
 
@@ -100,7 +118,8 @@ private fun SettingsContent(
     onSetNetworkScan: (Boolean) -> Unit,
     isMonitoringRunning: Boolean = false,
     onStartMonitoring: () -> Unit = {},
-    onStopMonitoring: () -> Unit = {}
+    onStopMonitoring: () -> Unit = {},
+    onSetAppLock: (Boolean) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -238,12 +257,15 @@ private fun SettingsContent(
             // ── Security ──────────────────────────────────────────────────
             item {
                 SectionCard(title = "Security") {
-                    SettingsNavRow(
+                    SettingsToggleRow(
                         icon = Icons.Default.Lock,
                         title = "App Lock",
-                        subtitle = "Require biometric or PIN to open (future)",
-                        valueLabel = if (settings.appLockEnabled) "On" else "Off",
-                        onClick = { /* Phase 5: show bottom sheet with LOW/MEDIUM/HIGH/DISABLED options */ },
+                        subtitle = if (settings.appLockEnabled)
+                            "Biometric or PIN required to open"
+                        else
+                            "Require authentication to access cameras",
+                        checked = settings.appLockEnabled,
+                        onCheckedChange = onSetAppLock,
                         iconTint = WarningAmber,
                         iconBg = WarningAmber.copy(alpha = 0.12f)
                     )
@@ -340,7 +362,7 @@ private fun SettingsPreview() {
             onNavigateBack = {}, onNavigateDiagnostics = {}, onNavigatePrivacy = {},
             onSetDarkTheme = {}, onSetAutoReconnect = {}, onSetNotifications = {},
             onSetLocalOnly = {}, onSetDataSaver = {}, onSetDiagnosticsLogging = {},
-            onSetNetworkScan = {}
+            onSetNetworkScan = {}, onSetAppLock = {}
         )
     }
 }

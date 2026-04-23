@@ -24,7 +24,7 @@ data class CameraEntity(
     val port: Int,
     val streamPath: String = "",
     val username: String = "",
-    val passwordEncrypted: String = "",   // future: encrypt at rest
+    val passwordEncrypted: String = "",   // Phase 8: AES-256-GCM via CryptoManager
     val transport: StreamTransport = StreamTransport.AUTO,
     val useTls: Boolean = false,
     val timeoutSeconds: Int = 10,
