@@ -131,3 +131,22 @@ future development must adhere to the following rules:
 
 Deviations from these guidelines should undergo a design review to
 ensure a consistent user experience.
+
+## Build Integrity Amendment
+
+Contributor-ready archives must include the complete Android build system,
+not just source files. Each inspection must verify:
+
+1. The Gradle wrapper files exist at the Android project root:
+   `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.properties`,
+   and `gradle/wrapper/gradle-wrapper.jar`.
+2. `settings.gradle.kts`, root `build.gradle.kts`, `app/build.gradle.kts`,
+   and `gradle/libs.versions.toml` are coherent and resolve the `:app`
+   module without ad hoc reconstruction.
+3. `app/src/main/AndroidManifest.xml` declares the application, launcher
+   activity, foreground monitoring service, boot receiver, FileProvider,
+   permissions, backup/data extraction XML, and adaptive launcher icons.
+4. `BUILD_VERIFICATION_CHECKLIST.md` contains exact open, build, install,
+   run, and clean verification commands.
+5. No build repair may alter the authoritative HTML-derived HUD interface
+   unless an explicit feature requirement authorizes UI changes.

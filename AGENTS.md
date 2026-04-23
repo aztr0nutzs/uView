@@ -155,3 +155,22 @@ ensure continuity across future development:
 
 Any future changes that could impact the visual identity of the
 application must be reviewed against this amendment to avoid regressions.
+
+## Build Integrity Amendment
+
+Every contributor handoff must preserve a complete Android project package.
+Before declaring build or packaging work complete:
+
+* Verify the Gradle wrapper is present and usable: `gradlew`, `gradlew.bat`,
+  `gradle/wrapper/gradle-wrapper.properties`, and
+  `gradle/wrapper/gradle-wrapper.jar`.
+* Verify `settings.gradle.kts`, root `build.gradle.kts`,
+  `app/build.gradle.kts`, and `gradle/libs.versions.toml` agree on the
+  project name, included modules, Android Gradle Plugin, Kotlin, KSP, and
+  dependency aliases.
+* Verify `app/src/main/AndroidManifest.xml` packages the declared
+  application, launcher activity, foreground service, receivers, providers,
+  permissions, backup rules, data extraction rules, and launcher icons.
+* Run or document the exact wrapper build command used for verification.
+  If the build cannot be run locally, state the blocker and leave
+  `BUILD_VERIFICATION_CHECKLIST.md` current.
