@@ -30,9 +30,13 @@ modifying or extending the user interface.
 ## Process
 
 - **Design review:** Before merging UI changes, conduct a visual review
-  comparing new screens to the reference HTML designs (`uview_screen1.html`,
-  `uview_screen2.html`, `uview_screen3.html`). Look for deviations
-  in colour or spacing.
+  comparing new screens to the mandatory root HTML authority files
+  (`uview_screen1.html`, `uview_screen2.html`, `uview_screen3.html`).
+  These files are not optional inspiration. `uview_screen1.html` governs
+  dashboard / camera list surfaces, `uview_screen2.html` governs the
+  multi-view tactical grid, and `uview_screen3.html` governs camera detail /
+  live feed surfaces. Deviations must be justified and reviewed against
+  `SCREEN_AUTHORITY_MAP.md`.
 - **Dark mode first:** Sentinel uses a dark theme by default. Test all
   new UI elements under dark theme conditions. If light mode is
   introduced later, define equivalent colours in `Theme.kt` before

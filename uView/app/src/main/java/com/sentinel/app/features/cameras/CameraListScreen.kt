@@ -1,5 +1,10 @@
 package com.sentinel.app.features.cameras
 
+// UI AUTHORITY: This camera list / tactical hub surface is governed by root
+// `uview_screen1.html`. Preserve its colorway, dense recon-feed rhythm,
+// chamfer/framing language, glow usage, and tactical typography feel.
+// Deviations require SCREEN_AUTHORITY_MAP.md review.
+
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable

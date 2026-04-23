@@ -1,23 +1,25 @@
 # Screen Authority Map
 
-This file mirrors `../SCREEN_AUTHORITY_MAP.md` for contributors who start in
-the `docs/` directory. The root HTML files are not optional inspiration,
-mockups, or loose visual references. They are the screen contracts for the
-Compose implementation.
+This file is the mandatory design authority map for the uView Android app.
+The root HTML files are not optional inspiration, mockups, or loose visual
+references. They are the screen contracts for the Compose implementation.
 
 ## Authoritative Root HTML Files
 
 | Root HTML authority | Required Compose surface | Primary implementation files |
 | --- | --- | --- |
-| `../../uview_screen1.html` | Dashboard / camera list / tactical hub | `app/src/main/java/com/sentinel/app/features/dashboard/DashboardScreen.kt`, `app/src/main/java/com/sentinel/app/features/cameras/CameraListScreen.kt` |
-| `../../uview_screen2.html` | Multi-view tactical grid | `app/src/main/java/com/sentinel/app/features/multiview/MultiViewScreen.kt` |
-| `../../uview_screen3.html` | Camera detail / live feed | `app/src/main/java/com/sentinel/app/features/cameras/detail/CameraDetailScreen.kt` |
+| `../uview_screen1.html` | Dashboard / camera list / tactical hub | `app/src/main/java/com/sentinel/app/features/dashboard/DashboardScreen.kt`, `app/src/main/java/com/sentinel/app/features/cameras/CameraListScreen.kt` |
+| `../uview_screen2.html` | Multi-view tactical grid | `app/src/main/java/com/sentinel/app/features/multiview/MultiViewScreen.kt` |
+| `../uview_screen3.html` | Camera detail / live feed | `app/src/main/java/com/sentinel/app/features/cameras/detail/CameraDetailScreen.kt` |
 
 The same files are mirrored into `app/src/main/assets/design-reference/` so
 the Android project carries its own copy of the design contract while the
 root originals remain preserved.
 
 ## Required Shared Tactical Primitives
+
+The shared Compose design system must preserve primitives derived from the
+three HTML authority files:
 
 - Tactical top bars with dark surface framing, orange active typography, dense
   status readouts, and hard bottom borders.

@@ -1,5 +1,9 @@
 package com.sentinel.app.features.dashboard
 
+// UI AUTHORITY: This dashboard surface is governed by root `uview_screen1.html`.
+// Preserve its tactical HUD colorway, density, framing, typography feel, glow,
+// edge treatment, and layout rhythm. Deviations require SCREEN_AUTHORITY_MAP.md review.
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

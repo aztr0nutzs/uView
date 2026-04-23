@@ -1,5 +1,10 @@
 package com.sentinel.app.features.multiview
 
+// UI AUTHORITY: This multi-view tactical grid is governed by root
+// `uview_screen2.html`. Preserve its grid density, hard panel framing,
+// live/offline overlays, HUD modules, glow accents, and tactical typography.
+// Deviations require SCREEN_AUTHORITY_MAP.md review.
+
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

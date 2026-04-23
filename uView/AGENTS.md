@@ -134,6 +134,12 @@ open ExoPlayer/MJPEG sessions and provide frames to the UI.
 Sentinel Home is defined by its neon, tactical HUD‑style user interface. To
 ensure continuity across future development:
 
+* **HTML authority is mandatory**: the root files `uview_screen1.html`,
+  `uview_screen2.html`, and `uview_screen3.html` are not optional inspiration.
+  They are the design authority for dashboard / camera list, multi-view
+  tactical grid, and camera detail / live feed respectively. Any visual
+  deviation must be justified and reviewed against `SCREEN_AUTHORITY_MAP.md`.
+
 * **Do not modify existing Compose screens** unless a build plan or
   feature requirement explicitly calls for it. Screens in
   `com.sentinel.app.features` and components in `com.sentinel.app.ui`

@@ -1,5 +1,10 @@
 package com.sentinel.app.features.cameras.detail
 
+// UI AUTHORITY: This camera detail / live feed surface is governed by root
+// `uview_screen3.html`. Preserve its live-feed shell, action strip, tabs,
+// HUD metrics, corner framing, glow usage, edge treatment, and layout rhythm.
+// Deviations require SCREEN_AUTHORITY_MAP.md review.
+
 import android.graphics.Bitmap
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.RepeatMode

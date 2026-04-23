@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;900&amp;family=Manrope:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#131313",
+                        "on-primary-fixed": "#000000",
+                        "error": "#ff7351",
+                        "surface-container-highest": "#262626",
+                        "tertiary-dim": "#00e1ef",
+                        "on-secondary-container": "#e7ffd9",
+                        "outline": "#767575",
+                        "error-container": "#b92902",
+                        "outline-variant": "#484847",
+                        "on-tertiary": "#005f65",
+                        "surface-container-lowest": "#000000",
+                        "on-secondary": "#0c5c00",
+                        "on-tertiary-fixed": "#004145",
+                        "tertiary-fixed-dim": "#00e1ef",
+                        "on-tertiary-container": "#00555b",
+                        "error-dim": "#d53d18",
+                        "surface-dim": "#0e0e0e",
+                        "secondary-fixed": "#32ff00",
+                        "primary": "#ff9159",
+                        "inverse-primary": "#a14100",
+                        "surface-tint": "#ff9159",
+                        "secondary-container": "#116e00",
+                        "on-tertiary-fixed-variant": "#006066",
+                        "on-secondary-fixed-variant": "#0f6700",
+                        "tertiary": "#9cf7ff",
+                        "tertiary-container": "#12f1ff",
+                        "on-error-container": "#ffd2c8",
+                        "surface-container-high": "#20201f",
+                        "on-primary-fixed-variant": "#4f1c00",
+                        "secondary-fixed-dim": "#2eef00",
+                        "secondary": "#32ff00",
+                        "on-primary": "#531e00",
+                        "surface-container": "#1a1a1a",
+                        "inverse-on-surface": "#565555",
+                        "tertiary-fixed": "#12f1ff",
+                        "primary-fixed-dim": "#f66700",
+                        "on-primary-container": "#401500",
+                        "on-background": "#ffffff",
+                        "surface-variant": "#262626",
+                        "on-error": "#450900",
+                        "on-surface": "#ffffff",
+                        "primary-dim": "#ff7524",
+                        "on-surface-variant": "#adaaaa",
+                        "secondary-dim": "#2eef00",
+                        "primary-fixed": "#ff7a2f",
+                        "primary-container": "#ff7a2f",
+                        "on-secondary-fixed": "#074600",
+                        "inverse-surface": "#fcf9f8",
+                        "background": "#0e0e0e",
+                        "surface": "#0e0e0e",
+                        "surface-bright": "#2c2c2c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "display": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .noise-overlay {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+        .machined-edge {
+            box-shadow: inset 0 2px 0 0 rgba(255,255,255,0.1), inset 0 -2px 0 0 rgba(0,0,0,0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen selection:bg-primary selection:text-on-primary overflow-x-hidden">
+<!-- TOP APP BAR -->
+<header class="bg-neutral-900/90 backdrop-blur-xl text-orange-600 dark:text-[#FF6B00] docked full-width top-0 border-b-4 border-neutral-800 shadow-[0_4px_20px_rgba(0,0,0,0.8)] z-50 flex justify-between items-center w-full px-6 py-4 max-w-full sticky">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">security</span>
+<div class="flex flex-col">
+<h1 class="text-2xl font-black italic tracking-widest text-[#FF6B00] drop-shadow-[0_0_8px_rgba(255,107,0,0.4)] font-headline uppercase leading-none">TACTICAL_GRID_v4.2</h1>
+<div class="flex items-center gap-2 mt-1">
+<div class="h-2 w-12 bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary w-1/2 shadow-[0_0_8px_#32ff00]"></div>
+</div>
+<span class="font-headline text-[10px] italic font-bold text-secondary tracking-widest">3/6 ONLINE</span>
+</div>
+</div>
+</div>
+<!-- GRID SELECTOR -->
+<div class="hidden md:flex bg-surface-container-lowest p-1 rounded-sm border-l-2 border-primary-dim/30">
+<button class="p-2 text-neutral-500 hover:text-white transition-all">
+<span class="material-symbols-outlined">crop_square</span>
+</button>
+<button class="p-2 text-[#00EEFC] drop-shadow-[0_0_5px_rgba(0,238,252,0.5)] bg-surface-container-high scale-105 rounded-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</button>
+<button class="p-2 text-neutral-500 hover:text-white transition-all">
+<span class="material-symbols-outlined">apps</span>
+</button>
+</div>
+<button class="bg-primary text-on-primary font-headline font-bold italic uppercase tracking-tighter px-6 py-2 machined-edge hover:bg-primary-fixed-dim active:scale-95 duration-75">
+            DEPLOY
+        </button>
+</header>
+<main class="p-4 md:p-8 max-w-[1600px] mx-auto pb-24">
+<!-- TACTICAL 2X2 GRID -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+<div class="noise-overlay fixed inset-0"></div>
+<!-- FEED 01: FRONT DOOR -->
+<div class="aspect-video relative bg-surface-container overflow-hidden border-4 border-surface-container-highest group">
+<!-- FASTENERS -->
+<div class="absolute top-1 left-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute top-1 right-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute bottom-1 left-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute bottom-1 right-1 w-1 h-1 bg-outline-variant"></div>
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 grayscale-[0.3]" data-alt="CCTV perspective of a modern suburban front porch at night with harsh artificial lighting and deep shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHtMT8RSn7SnDUqXOwD0OJ3nVngL5OEOeyQprtsNrBV8QMGxf0QIBTwjntTXi6Ttl0EekmrnFHKPpDhF9cWisYkk2tSoPqM1zLj0G6TLJESEMC2oxe_bwJjySMq4oCSjwPoafVR8fcFtx0W_Ffcl8suVyYHFrO2lUjTTnRvBA0qX2yJX7vkcqw9n6b7YRTre3I5ZBBWpL3Un1MJ9oW04g46J3T_Wi5p9_rSNptHw6QitYMIJREF939T3LTH9MzelvliA2GQFE5zcv3"/>
+<div class="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md border-l-4 border-error">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_#ff7351]"></span>
+<span class="font-headline italic font-black text-xs text-on-background tracking-tighter">LIVE</span>
+</div>
+<div class="absolute top-4 right-4 px-2 py-0.5 bg-secondary-container/80 text-secondary font-headline text-[10px] italic font-bold border border-secondary/20">
+                    SECURE_LINK_ESTABLISHED
+                </div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent">
+<div class="flex items-end justify-between">
+<div>
+<span class="font-label text-tertiary-dim text-[10px] tracking-widest block mb-1">UNIT_ID: CAM_01</span>
+<h3 class="font-headline text-xl italic font-black text-on-background tracking-tight">FRONT DOOR</h3>
+</div>
+<span class="text-on-surface-variant font-label text-[10px]">1080P // 60FPS</span>
+</div>
+</div>
+</div>
+<!-- FEED 02: BACK YARD -->
+<div class="aspect-video relative bg-surface-container overflow-hidden border-4 border-surface-container-highest group">
+<div class="absolute top-1 left-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute top-1 right-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute bottom-1 left-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute bottom-1 right-1 w-1 h-1 bg-outline-variant"></div>
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 grayscale-[0.3]" data-alt="Wide angle security camera view of a backyard with a dark swimming pool and illuminated patio furniture under moonlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYJWOwE02dDdheJL8CcIiHH6_CdSrddqJoPiKOmrAElwgbYFnKKgnE5xx3HwQ6mZkSWr3Tajczruvx-rvhuVcNRpfa7C4wk0O4F94g15VZopIObh2em0lN8j9GmL3iTmAG7vk1DTHV0iwIy3GH0XaxuZ-S8tLjDVio7ywd4PyQfiWUYRKvkWmEygA9f7XR5rmlYzRD_gz3C4WF75PQLl9UtUpdHhsmtWcYOTChSH49bhJMrhylwPgsTuOuTo-sbfAzrgmesKUgibwv"/>
+<div class="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md border-l-4 border-error">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_#ff7351]"></span>
+<span class="font-headline italic font-black text-xs text-on-background tracking-tighter">LIVE</span>
+</div>
+<div class="absolute top-4 right-4 px-2 py-0.5 bg-secondary-container/80 text-secondary font-headline text-[10px] italic font-bold border border-secondary/20">
+                    MOTION_DETECTION_ACTIVE
+                </div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent">
+<div class="flex items-end justify-between">
+<div>
+<span class="font-label text-tertiary-dim text-[10px] tracking-widest block mb-1">UNIT_ID: CAM_02</span>
+<h3 class="font-headline text-xl italic font-black text-on-background tracking-tight">BACK YARD</h3>
+</div>
+<span class="text-on-surface-variant font-label text-[10px]">1080P // 30FPS</span>
+</div>
+</div>
+</div>
+<!-- FEED 03: LIVING ROOM PHONE -->
+<div class="aspect-video relative bg-surface-container overflow-hidden border-4 border-surface-container-highest group">
+<div class="absolute top-1 left-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute top-1 right-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute bottom-1 left-1 w-1 h-1 bg-outline-variant"></div>
+<div class="absolute bottom-1 right-1 w-1 h-1 bg-outline-variant"></div>
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 grayscale-[0.3]" data-alt="High angle view of a contemporary living room with neon accent lighting and sleek minimalist furniture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj3rXF7FpSr58np_Yh9JaPgFvocmbRtGUAX-ukX-WqGUIgMm3IL30BPCzG1qdM7CKdln7OyIHowK1ksr-VCzmFar8fwhOP36jtgxsSFket0HoO3kN97cbfN44KoG7Hui6pnkvxzzkZPGHZu7IxSfeEJXP14tv4wfJinFfOYdLi4vZtpgompWiMAtdf4Z8W2SgPipTLTNCrUI83QP0W0HwbnHhRyOCHlIuTg3rxkv4Fi8FU3xWW5CLmXPSFT7RlnS_lF56c7i2HGCfk"/>
+<div class="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md border-l-4 border-error">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_#ff7351]"></span>
+<span class="font-headline italic font-black text-xs text-on-background tracking-tighter">LIVE</span>
+</div>
+<div class="absolute top-4 right-4 px-2 py-0.5 bg-surface-container-high text-tertiary font-headline text-[10px] italic font-bold border border-tertiary/20">
+                    SQUAD_MEMBER_CAM:09
+                </div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent">
+<div class="flex items-end justify-between">
+<div>
+<span class="font-label text-tertiary-dim text-[10px] tracking-widest block mb-1">UNIT_ID: P_MOBILE_01</span>
+<h3 class="font-headline text-xl italic font-black text-on-background tracking-tight">LIVING ROOM PHONE</h3>
+</div>
+<span class="text-on-surface-variant font-label text-[10px]">720P // 60FPS</span>
+</div>
+</div>
+</div>
+<!-- FEED 04: GARAGE (OFFLINE) -->
+<div class="aspect-video relative bg-black overflow-hidden border-4 border-error-container/40 flex items-center justify-center">
+<!-- SCANLINE EFFECT -->
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-error/5 to-transparent h-2 w-full animate-scan"></div>
+<div class="absolute top-1 left-1 w-1 h-1 bg-error-dim"></div>
+<div class="absolute top-1 right-1 w-1 h-1 bg-error-dim"></div>
+<div class="absolute bottom-1 left-1 w-1 h-1 bg-error-dim"></div>
+<div class="absolute bottom-1 right-1 w-1 h-1 bg-error-dim"></div>
+<div class="text-center">
+<span class="material-symbols-outlined text-6xl text-error mb-4" style="font-variation-settings: 'FILL' 1;">signal_disconnected</span>
+<h2 class="font-headline text-3xl italic font-black text-error-dim tracking-tighter uppercase drop-shadow-[0_0_15px_rgba(185,41,2,0.6)]">SIGNAL_LOST</h2>
+<p class="font-label text-error/60 text-xs tracking-[0.3em] mt-2">RECONNECTING ATTEMPT 4/10</p>
+</div>
+<div class="absolute top-4 right-4 px-2 py-0.5 bg-error-container text-on-error font-headline text-[10px] italic font-bold">
+                    CRITICAL_FAILURE
+                </div>
+<div class="absolute bottom-0 left-0 w-full p-4">
+<div class="flex items-end justify-between opacity-40">
+<div>
+<span class="font-label text-error-dim text-[10px] tracking-widest block mb-1">UNIT_ID: CAM_04</span>
+<h3 class="font-headline text-xl italic font-black text-on-background tracking-tight">GARAGE</h3>
+</div>
+<span class="text-error font-label text-[10px]">OFFLINE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- QUICK ACCESS HUD MODULES -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+<!-- SQUAD STATUS -->
+<div class="bg-surface-container p-6 border-l-8 border-primary relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-8 -mt-8 rotate-45"></div>
+<h4 class="font-headline italic font-black text-primary text-sm tracking-widest mb-4">SQUAD_TELEMETRY</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="font-headline italic font-bold text-on-surface-variant text-sm">OPERATOR_01</span>
+<span class="text-secondary font-label text-[10px] border border-secondary/30 px-2">ACTIVE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-headline italic font-bold text-on-surface-variant text-sm">OPERATOR_02</span>
+<span class="text-tertiary font-label text-[10px] border border-tertiary/30 px-2">STANDBY</span>
+</div>
+</div>
+</div>
+<!-- SECURITY ALERT LOG -->
+<div class="bg-surface-container p-6 border-l-8 border-tertiary relative overflow-hidden">
+<h4 class="font-headline italic font-black text-tertiary text-sm tracking-widest mb-4">SYSTEM_LOGS</h4>
+<div class="space-y-2">
+<div class="flex gap-3 items-start border-b border-outline-variant/10 pb-2">
+<span class="text-tertiary-dim font-label text-[9px] mt-1 shrink-0">22:45:01</span>
+<p class="text-on-surface-variant text-xs leading-tight">CAM_01: Motion detected at perimeter zone A-4.</p>
+</div>
+<div class="flex gap-3 items-start border-b border-outline-variant/10 pb-2">
+<span class="text-tertiary-dim font-label text-[9px] mt-1 shrink-0">22:42:15</span>
+<p class="text-on-surface-variant text-xs leading-tight">SYSTEM: Encrypted handshake successful with HUB_CORE.</p>
+</div>
+</div>
+</div>
+<!-- SENSOR READOUTS -->
+<div class="bg-surface-container-high p-6 border-l-8 border-secondary relative overflow-hidden">
+<h4 class="font-headline italic font-black text-secondary text-sm tracking-widest mb-4">SENSOR_ARRAYS</h4>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col items-center">
+<span class="text-on-surface-variant font-label text-[9px]">TEMP</span>
+<span class="font-headline italic font-black text-2xl text-on-surface">24°C</span>
+</div>
+<div class="h-10 w-[2px] bg-outline-variant/30"></div>
+<div class="flex flex-col items-center">
+<span class="text-on-surface-variant font-label text-[9px]">SIGNAL</span>
+<span class="font-headline italic font-black text-2xl text-tertiary-dim">98%</span>
+</div>
+<div class="h-10 w-[2px] bg-outline-variant/30"></div>
+<div class="flex flex-col items-center">
+<span class="text-on-surface-variant font-label text-[9px]">BATTERY</span>
+<span class="font-headline italic font-black text-2xl text-secondary">82%</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BOTTOM NAVIGATION SHELL -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center bg-[#1a1a1a] shadow-2xl h-20 border-t-2 border-neutral-800 z-50">
+<!-- MONITOR (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-[#FF6B00] border-t-4 border-[#FF6B00] bg-gradient-to-b from-[#FF6B00]/10 to-transparent pt-2 px-6 active:translate-y-1 scale-98 transition-transform group" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-['Manrope'] font-bold text-[10px] tracking-widest uppercase mt-1">MONITOR</span>
+</a>
+<!-- ZONES -->
+<a class="flex flex-col items-center justify-center text-neutral-600 pt-3 px-6 hover:text-[#00EEFC] transition-colors active:translate-y-1 scale-98 transition-transform group" href="#">
+<span class="material-symbols-outlined text-2xl">lan</span>
+<span class="font-['Manrope'] font-bold text-[10px] tracking-widest uppercase mt-1">ZONES</span>
+</a>
+<!-- SQUAD -->
+<a class="flex flex-col items-center justify-center text-neutral-600 pt-3 px-6 hover:text-[#00EEFC] transition-colors active:translate-y-1 scale-98 transition-transform group" href="#">
+<span class="material-symbols-outlined text-2xl">group</span>
+<span class="font-['Manrope'] font-bold text-[10px] tracking-widest uppercase mt-1">SQUAD</span>
+</a>
+<!-- INTEL -->
+<a class="flex flex-col items-center justify-center text-neutral-600 pt-3 px-6 hover:text-[#00EEFC] transition-colors active:translate-y-1 scale-98 transition-transform group" href="#">
+<span class="material-symbols-outlined text-2xl">analytics</span>
+<span class="font-['Manrope'] font-bold text-[10px] tracking-widest uppercase mt-1">INTEL</span>
+</a>
+</nav>
+<!-- FAB (Suppressed based on screen context) -->
+<!-- SIDE NAV (Hidden on Mobile) -->
+<div class="hidden md:flex fixed inset-y-0 left-0 w-20 bg-surface-dim border-r-4 border-neutral-800 flex-col items-center py-10 gap-8 z-[40]">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<div class="flex flex-col gap-6">
+<button class="w-12 h-12 bg-surface-container-high rounded-sm flex items-center justify-center text-tertiary-dim hover:bg-tertiary-dim hover:text-black transition-all">
+<span class="material-symbols-outlined">hardware</span>
+</button>
+<button class="w-12 h-12 bg-surface-container-high rounded-sm flex items-center justify-center text-on-surface-variant hover:text-secondary transition-all">
+<span class="material-symbols-outlined">android_fingerprint</span>
+</button>
+<button class="w-12 h-12 bg-surface-container-high rounded-sm flex items-center justify-center text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+</div>
+</div>
+</body></html>
