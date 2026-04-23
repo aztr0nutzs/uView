@@ -1,0 +1,27 @@
+Implement the unfinished functional features that the UI now exposes, without altering the restored tactical interface.
+
+CRITICAL UI PRESERVATION RULES:
+- Preserve all UI styling and layout established from the three authoritative root HTML files.
+- Do NOT rewrite screens to accommodate backend shortcuts.
+- Any temporary limitation must be communicated through existing UI states, not by changing the design.
+
+TASK:
+Complete the major unfinished backend and interaction features currently exposed by the app.
+
+PRIORITY ORDER:
+1. Recording pipeline
+2. Snapshot flow validation
+3. Diagnostics completion
+4. Settings action completion
+5. Multi-view action completion
+
+IMPLEMENTATION REQUIREMENTS:
+1. Replace placeholder recording behavior with a real implementation where feasible.
+2. If a fully real pipeline is not possible with the current playback stack, implement the strongest truthful intermediate solution and label limitations in code comments.
+3. Complete diagnostics actions and reporting where currently stubbed.
+4. Wire settings rows that currently do nothing.
+5. Ensure detail-screen action strip buttons perform real work or enter explicit disabled/pending states.
+6. Return exact file-by-file edits with full code.
+7. Include a verification section listing what is now truly implemented versus still limited.
+
+Do not fake capability. Do not break the restored UI.

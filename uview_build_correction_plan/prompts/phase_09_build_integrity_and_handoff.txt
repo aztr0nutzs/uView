@@ -1,0 +1,30 @@
+Prepare this Android project for clean contributor handoff and repeatable build verification.
+
+CRITICAL UI PRESERVATION RULES:
+- The three root HTML files remain the visual source of truth:
+  - uview_screen1.html
+  - uview_screen2.html
+  - uview_screen3.html
+- Their exact colorway, style, and layout language must be documented as mandatory preservation rules.
+- Do NOT allow future contributors to “simplify” or replace the tactical HUD identity.
+
+TASK:
+Perform a packaging and handoff pass so the project is buildable, inspectable, and safe for future contributors.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Restore or create missing Gradle wrapper files and ensure the project can be opened and built normally.
+2. Verify project structure, manifest declarations, services, file providers, and icons.
+3. Create documentation files:
+   - AGENTS.md
+   - MASTER_INSPECTION.md
+   - UI_PRESERVATION_RULES.md
+   - BUILD_VERIFICATION_CHECKLIST.md
+   - SCREEN_AUTHORITY_MAP.md
+4. In SCREEN_AUTHORITY_MAP.md, explicitly map:
+   - uview_screen1.html -> dashboard/camera list
+   - uview_screen2.html -> multi-view grid
+   - uview_screen3.html -> camera detail/live feed
+5. Include verification steps and expected outputs.
+6. Return exact file-by-file additions/edits with complete content.
+
+The final result must be handoff-ready and must protect the restored UI from future regression.

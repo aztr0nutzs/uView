@@ -1,0 +1,23 @@
+Perform a production hardening pass on the app without changing the restored tactical HUD UI.
+
+CRITICAL UI PRESERVATION RULES:
+- Do NOT alter screen styling, colorway, spacing, framing, or component presentation.
+- Do NOT degrade the visual identity during security or infrastructure work.
+- All changes must preserve the screen authority established from the three root HTML files.
+
+TASK:
+Implement or correct the production hardening features that are still partial, stubbed, or unsafe.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Review credential encryption:
+   - remove insecure fallback behavior
+   - ensure encryption/decryption is handled consistently
+   - eliminate misleading stub comments
+2. Implement real app lock using BiometricPrompt and safe fallback behavior.
+3. Replace destructive migration shortcuts with real Room migration handling where possible.
+4. Integrate a real crash reporting abstraction or a clean pluggable implementation point.
+5. Review config export/import for safety, data consistency, and user feedback.
+6. Preserve all existing UI behavior and layouts.
+7. Return exact file-by-file edits with complete code and a verification checklist.
+
+Do not perform speculative redesign. This phase is for trustworthiness and production resilience.

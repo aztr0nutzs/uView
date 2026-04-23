@@ -1,0 +1,44 @@
+You are performing a STRICT READ-ONLY UI ARCHITECTURE + VISUAL PARITY AUDIT of this Android project.
+
+CRITICAL UI PRESERVATION RULES:
+- DO NOT redesign the app into generic Material UI.
+- DO NOT simplify, normalize, or modernize away the current tactical HUD identity.
+- The three root HTML files are the visual source of truth and MUST be used:
+  - uview_screen1.html = dashboard / camera list
+  - uview_screen2.html = multi-view tactical grid
+  - uview_screen3.html = camera detail / live feed
+- Preserve their exact colorway, layout language, typography feel, spacing density, bevel/chamfer styling, neon accent usage, panel hierarchy, and HUD framing.
+- Redesign is allowed only where required to complete missing states or improve usability while preserving the same visual identity.
+
+TASK:
+Inspect the Android project and produce a complete UI authority report.
+
+OUTPUT REQUIREMENTS:
+1. Identify every current Compose screen and map it to one of the root HTML files or mark it as currently unmatched.
+2. Produce a screen parity table:
+   - Compose screen/file
+   - Intended HTML authority file
+   - Match quality (0-100)
+   - Exact mismatches
+   - Required corrections
+3. Produce a reusable component inventory derived from the HTML files:
+   - top bars
+   - section headers
+   - chips/tabs
+   - tactical cards
+   - feed tiles
+   - action strip buttons
+   - metric panels
+   - overlays
+4. Produce a visual token map:
+   - colors
+   - text roles
+   - border weights
+   - corner treatments
+   - glow/shadow conventions
+   - spacing rhythm
+5. Identify which existing theme/shared UI files can be preserved and extended safely.
+6. Identify any current UI files that must be rewritten to achieve parity.
+7. Do not write vague recommendations. Give exact file paths and exact responsibilities.
+
+Do not modify code. Return a precise, implementation-grade UI parity report only.

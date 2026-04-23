@@ -1,0 +1,28 @@
+Perform a focused architecture correction pass to wire the newly rebuilt UI screens to real app state.
+
+CRITICAL UI PRESERVATION RULES:
+- Do NOT alter the restored screen designs.
+- Do NOT simplify layouts while wiring state.
+- Preserve the exact visual treatment already established from:
+  - uview_screen1.html
+  - uview_screen2.html
+  - uview_screen3.html
+
+TASK:
+Correct screen state architecture so dashboard, multi-view, and detail screens are driven by real repositories/viewmodels rather than fragmented placeholder state.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Identify the authoritative repositories and flows for:
+   - cameras
+   - events
+   - stream/playback status
+   - favorites
+   - settings/preferences
+2. Ensure all three major screens consume consistent state.
+3. Remove or reduce fake/manual seeded UI state where real data exists.
+4. Fix dead buttons and placeholder handlers where current logic already exists.
+5. Where final backend support is still missing, surface disabled or pending states honestly without fake success.
+6. Preserve navigation and existing behavior unless a correction is necessary.
+7. Return exact file-by-file edits with complete code.
+
+Do not perform cosmetic rewrites in this phase. This phase is strictly about wiring the restored tactical UI to the real data model.

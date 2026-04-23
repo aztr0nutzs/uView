@@ -1,0 +1,36 @@
+Implement the dashboard / camera list screen in Compose using uview_screen1.html as the direct visual authority.
+
+CRITICAL UI PRESERVATION RULES:
+- Preserve the exact visual family of uview_screen1.html:
+  - orange/cyan/green palette
+  - italicized tactical typography
+  - dense industrial spacing
+  - sharp inset panel shells
+  - neon HUD framing
+  - room/sector chip treatment
+  - search/filter styling
+  - feed list item hierarchy
+- Do NOT simplify into ordinary cards or a plain list.
+- Do NOT change the layout language or color balance.
+
+TASK:
+Rebuild the dashboard / camera list screen so it matches uview_screen1.html while remaining fully functional in Compose.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Use the HTML screen as the visual blueprint for:
+   - top app bar
+   - search/filter section
+   - room/sector chip row
+   - active feeds list
+2. Bind real app state where possible:
+   - camera list
+   - online/offline state
+   - room/group labels
+   - thumbnail/preview placeholder handling
+3. Preserve navigation from list item to camera detail.
+4. Use shared UI primitives from the design-system phase where appropriate.
+5. Handle loading, empty, and error states in the same visual language.
+6. Do not break existing repositories/viewmodels unless necessary.
+7. Return exact file-by-file edits with full code.
+
+The finished screen must look like a Compose implementation of uview_screen1.html, not a loose interpretation.

@@ -1,0 +1,35 @@
+Implement the camera detail / live feed screen in Compose using uview_screen3.html as the direct visual authority.
+
+CRITICAL UI PRESERVATION RULES:
+- Preserve the exact visual contract of uview_screen3.html:
+  - live feed shell and overlays
+  - corner bracket styling
+  - action strip treatment
+  - tactical tab row
+  - performance/diagnostics panel styling
+  - color hierarchy and typography
+- Do NOT simplify the screen into a plain video view with ordinary buttons.
+- Do NOT remove the HUD overlay identity.
+
+TASK:
+Rebuild the camera detail screen so it visually matches uview_screen3.html and remains functionally central to playback and camera operations.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Recreate the live feed shell and overlays from the HTML.
+2. Implement the action strip visually and structurally as shown in the HTML:
+   - snapshot
+   - recording
+   - reconnect
+   - mute/audio
+   - favorite
+   - settings
+3. Implement the tab system:
+   - Live
+   - Details
+   - Events
+   - Diagnostics
+4. Preserve or improve current playback integration.
+5. Use real camera metrics where available and clearly label unavailable metrics rather than faking values.
+6. Return complete file-by-file edits with exact paths and full code.
+
+The output must look like a faithful Compose translation of uview_screen3.html, not a generic camera detail page.

@@ -1,0 +1,48 @@
+Implement the shared Compose tactical design system for this Android project.
+
+CRITICAL UI PRESERVATION RULES:
+- The visual authority files are:
+  - uview_screen1.html
+  - uview_screen2.html
+  - uview_screen3.html
+- Their exact colorway, style, layout behavior, typography feel, and tactical HUD identity must be preserved.
+- Do NOT replace the style with stock Material cards, pills, app bars, or default typography.
+- Do NOT remove density, edge detailing, glows, bevels, chamfers, or industrial framing.
+- Any shared component must visually match the HTML family exactly.
+
+TASK:
+Create or correct the shared Compose theme and reusable UI primitives needed to faithfully recreate the three HTML screens.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Update or create theme tokens for:
+   - background/surface layers
+   - orange/cyan/green accent roles
+   - error/recording accent roles
+   - outline and panel edge roles
+2. Define typography roles that match the HTML look:
+   - tactical headers
+   - section titles
+   - compact metadata labels
+   - metric values
+   - chips/tab labels
+3. Create reusable components for:
+   - tactical top bar
+   - section header
+   - tactical panel shell
+   - camera/feed tile
+   - filter/search field shell
+   - room/zone chip row
+   - action strip button
+   - metric block
+   - overlay badge
+   - tactical tab row
+4. Implement Compose styling helpers for:
+   - glow
+   - bevel/inset framing
+   - chamfer-like feel where possible
+   - dense HUD spacing
+5. Add preview coverage for each component.
+6. Keep changes localized and safe. Do not break existing navigation or app behavior.
+7. Return complete file-by-file edits with exact paths and full replacement/addition content.
+
+Do not leave placeholders. Build production-usable shared UI primitives.

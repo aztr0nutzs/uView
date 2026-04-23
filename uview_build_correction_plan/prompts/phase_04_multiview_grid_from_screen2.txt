@@ -1,0 +1,30 @@
+Implement the multi-view tactical grid screen in Compose using uview_screen2.html as the direct visual authority.
+
+CRITICAL UI PRESERVATION RULES:
+- Preserve the exact layout language and styling of uview_screen2.html:
+  - tactical grid framing
+  - panel borders and industrial shell
+  - online status treatment
+  - feed overlay structure
+  - grid selector styling
+  - deploy/monitor action presentation
+- Do NOT flatten the screen into generic tiles.
+- Do NOT replace the visual shell with plain Material scaffolding.
+
+TASK:
+Rebuild the multi-view screen so it faithfully matches uview_screen2.html and supports real app state.
+
+IMPLEMENTATION REQUIREMENTS:
+1. Recreate the top bar and tactical grid selector treatment.
+2. Implement the multi-feed grid using the HTML layout as the visual reference.
+3. Use real camera state where possible:
+   - camera name
+   - preview thumbnail / stream placeholder
+   - online/offline
+   - alert/secure indicators
+4. Support navigation from a grid cell to the camera detail screen.
+5. Preserve visual density and edge detailing.
+6. Where a button cannot yet perform its final backend action, wire it safely to the current logic or disable it explicitly without using fake success behavior.
+7. Return exact file-by-file edits with complete code.
+
+The result must be visually faithful to uview_screen2.html and structurally clean enough for later backend wiring.
