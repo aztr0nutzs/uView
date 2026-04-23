@@ -3,7 +3,6 @@ package com.sentinel.app.data.playback
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.PixelFormat
 import android.view.SurfaceView
 import androidx.media3.common.util.UnstableApi
 import com.sentinel.app.domain.model.SnapshotRequest
@@ -11,36 +10,38 @@ import com.sentinel.app.domain.model.SnapshotResult
 import com.sentinel.app.domain.service.SnapshotController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * SnapshotControllerImpl
+ * Captures still frames from active camera sessions and saves them as JPEGs.
  *
- * Captures still frames from active camera sessions and saves them as JPEG files.
+ * What is real:
+ * - MJPEG snapshots are persisted from the latest decoded bitmap in
+ *   [MjpegSessionRegistry].
+ * - ExoPlayer snapshots are attempted only when a real [SurfaceView] has been
+ *   registered through [SurfaceCapture].
  *
- * Strategy per session type:
- *   MJPEG  → grab the last decoded [Bitmap] from [MjpegSessionRegistry] (replay=1)
- *   ExoPlayer → capture the rendered surface via [SurfaceCapture]
- *             (Note: surface capture requires API-level cooperation; currently
- *              saves a placeholder if no surface is registered. Wire
- *              [SurfaceCapture.register] from [ExoPlayerStreamView] to enable.)
- *
- * Snapshots are saved to [Context.getExternalFilesDir]/Snapshots/<cameraId>/.
+ * What is deliberately not faked:
+ * - No placeholder image is written. If no frame can be read, this returns a
+ *   failed [SnapshotResult] and callers must not log a success event.
  */
 @UnstableApi
 @Singleton
 class SnapshotControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val mjpegRegistry: MjpegSessionRegistry,
-    private val sessions: CameraPlaybackServiceImpl  // access to ExoPlayer instances
+    @Suppress("unused") private val sessions: CameraPlaybackServiceImpl
 ) : SnapshotController {
 
     private val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US)
@@ -49,56 +50,37 @@ class SnapshotControllerImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             val cameraId = request.cameraId
             val timestamp = System.currentTimeMillis()
-            val filename = "snap_${dateFormat.format(Date(timestamp))}.jpg"
-
-            val dir = snapshotDir(cameraId)
-            dir.mkdirs()
-            val file = File(dir, filename)
+            val file = File(snapshotDir(cameraId), "snap_${dateFormat.format(Date(timestamp))}.jpg")
 
             try {
-                // Try MJPEG last-frame first (fastest, no surface required)
-                val mjpegBitmap = tryCaptureMjpegFrame(cameraId)
-                if (mjpegBitmap != null) {
-                    saveBitmap(mjpegBitmap, file, request.quality)
-                    Timber.d("Snapshot saved (MJPEG): ${file.absolutePath}")
+                val bitmap = tryCaptureMjpegFrame(cameraId) ?: SurfaceCapture.capture(cameraId)
+                if (bitmap == null) {
+                    Timber.w("Snapshot failed: no active frame for cameraId=$cameraId")
                     return@withContext SnapshotResult(
-                        cameraId  = cameraId,
-                        savedPath = file.absolutePath,
+                        cameraId = cameraId,
+                        savedPath = "",
                         timestampMs = timestamp,
-                        success = true
+                        success = false,
+                        errorMessage = "No active stream frame available"
                     )
                 }
 
-                // ExoPlayer surface capture — requires SurfaceView registration
-                val surfaceBitmap = SurfaceCapture.capture(cameraId)
-                if (surfaceBitmap != null) {
-                    saveBitmap(surfaceBitmap, file, request.quality)
-                    Timber.d("Snapshot saved (ExoPlayer surface): ${file.absolutePath}")
-                    return@withContext SnapshotResult(
-                        cameraId    = cameraId,
-                        savedPath   = file.absolutePath,
-                        timestampMs = timestamp,
-                        success     = true
-                    )
-                }
-
-                // No active frame available
-                Timber.w("Snapshot failed: no active frame for cameraId=$cameraId")
+                saveBitmap(bitmap, file, request.quality).getOrThrow()
+                Timber.d("Snapshot saved: ${file.absolutePath}")
                 SnapshotResult(
-                    cameraId    = cameraId,
-                    savedPath   = "",
+                    cameraId = cameraId,
+                    savedPath = file.absolutePath,
                     timestampMs = timestamp,
-                    success     = false,
-                    errorMessage = "No active stream frame available"
+                    success = true
                 )
-
             } catch (e: Exception) {
                 Timber.e(e, "Snapshot error for cameraId=$cameraId")
+                file.delete()
                 SnapshotResult(
-                    cameraId     = cameraId,
-                    savedPath    = "",
-                    timestampMs  = timestamp,
-                    success      = false,
+                    cameraId = cameraId,
+                    savedPath = "",
+                    timestampMs = timestamp,
+                    success = false,
                     errorMessage = e.message
                 )
             }
@@ -109,54 +91,46 @@ class SnapshotControllerImpl @Inject constructor(
             val dir = snapshotDir(cameraId)
             if (!dir.exists()) return@withContext emptyList()
 
-            dir.listFiles { f -> f.extension == "jpg" }
+            dir.listFiles { file -> file.extension.equals("jpg", ignoreCase = true) }
+                ?.filter { it.length() > 0L }
                 ?.sortedByDescending { it.lastModified() }
                 ?.map { file ->
                     SnapshotResult(
-                        cameraId    = cameraId,
-                        savedPath   = file.absolutePath,
+                        cameraId = cameraId,
+                        savedPath = file.absolutePath,
                         timestampMs = file.lastModified(),
-                        success     = true
+                        success = true
                     )
-                } ?: emptyList()
+                }
+                ?: emptyList()
         }
 
     private fun snapshotDir(cameraId: String): File =
-        File(context.getExternalFilesDir(null), "Snapshots/$cameraId")
+        File(context.getExternalFilesDir(null) ?: context.filesDir, "Snapshots/$cameraId")
 
-    private suspend fun tryCaptureMjpegFrame(cameraId: String): Bitmap? {
-        // Grab the replayed last frame from the MJPEG registry (non-suspending)
-        var captured: Bitmap? = null
-        try {
-            // SharedFlow with replay=1 — first emission to a new collector is the last frame
-            mjpegRegistry.frames(cameraId).collect { bmp ->
-                captured = bmp
-                // We only want the most recent frame, so we don't loop
-                throw StopCollecting
-            }
-        } catch (_: StopCollecting) { }
-        return captured
-    }
-
-    private fun saveBitmap(bitmap: Bitmap, file: File, quality: Int) {
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality.coerceIn(1, 100), out)
-            out.flush()
+    private suspend fun tryCaptureMjpegFrame(cameraId: String): Bitmap? =
+        withTimeoutOrNull(750L) {
+            mjpegRegistry.frames(cameraId).firstOrNull()
         }
-    }
 
-    private object StopCollecting : Throwable()
+    private fun saveBitmap(bitmap: Bitmap, file: File, quality: Int): Result<Unit> =
+        runCatching {
+            file.parentFile?.mkdirs()
+            FileOutputStream(file).use { out ->
+                val compressed = bitmap.compress(Bitmap.CompressFormat.JPEG, quality.coerceIn(1, 100), out)
+                out.flush()
+                if (!compressed || file.length() <= 0L) {
+                    throw IllegalStateException("Bitmap compression produced no JPEG data")
+                }
+            }
+        }
 }
 
 /**
- * SurfaceCapture
+ * Registry for active rendered surfaces that can be snapshotted.
  *
- * Lightweight registry that holds weak references to active [SurfaceView]s
- * so [SnapshotControllerImpl] can capture a frame by drawing the view to a
- * [Bitmap] canvas.
- *
- * [ExoPlayerStreamView] must call [register] after attaching its PlayerView
- * and [unregister] when the composable leaves the composition.
+ * SurfaceView pixels are not always CPU-readable. This path is best-effort and
+ * returns null when no registered surface can provide a frame.
  */
 object SurfaceCapture {
 
@@ -170,30 +144,16 @@ object SurfaceCapture {
         surfaces.remove(cameraId)
     }
 
-    /**
-     * Attempt to draw the registered surface to a bitmap.
-     * Returns null if no surface is registered or drawing fails.
-     *
-     * Note: Surface pixels are not always CPU-readable — this works best with
-     * TextureView. For production, switch ExoPlayer to use TextureView via
-     * [PlayerView.setVideoSurfaceView] → consider [PlayerView] with
-     * `surface_type="texture_view"` in XML, or use Media3's `SurfaceRequest`
-     * callback to get the decoded bitmap directly.
-     */
     fun capture(cameraId: String): Bitmap? {
         val view = surfaces[cameraId] ?: return null
+        if (view.width <= 0 || view.height <= 0) return null
         return try {
-            val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bmp)
-            view.draw(canvas)
-            bmp
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            view.draw(Canvas(bitmap))
+            bitmap
         } catch (e: Exception) {
-            Timber.w("SurfaceCapture.capture failed for $cameraId: ${e.message}")
+            Timber.w(e, "SurfaceCapture.capture failed for $cameraId")
             null
         }
     }
-
-    private val Timber get() = timber.log.Timber
-    private val ConcurrentHashMap get() = java.util.concurrent.ConcurrentHashMap<String, SurfaceView>()
-    // Re-declare for scoping; the import above covers actual usage
 }

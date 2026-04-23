@@ -23,6 +23,7 @@ import com.sentinel.app.domain.service.GenericStreamAdapter
 import com.sentinel.app.domain.service.MjpegStreamAdapter
 import com.sentinel.app.domain.service.OnvifCameraAdapter
 import com.sentinel.app.domain.service.RtspCameraAdapter
+import com.sentinel.app.domain.service.SnapshotController
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -180,6 +181,6 @@ object PlaybackModule {
         @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context,
         mjpegRegistry: com.sentinel.app.data.playback.MjpegSessionRegistry,
         playbackService: com.sentinel.app.data.playback.CameraPlaybackServiceImpl
-    ): com.sentinel.app.data.playback.SnapshotControllerImpl =
+    ): SnapshotController =
         com.sentinel.app.data.playback.SnapshotControllerImpl(context, mjpegRegistry, playbackService)
 }

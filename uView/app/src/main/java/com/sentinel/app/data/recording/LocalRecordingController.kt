@@ -1,145 +1,184 @@
 package com.sentinel.app.data.recording
 
 import android.content.Context
-import android.media.MediaCodec
-import android.media.MediaFormat
-import android.media.MediaMuxer
+import android.graphics.Bitmap
 import android.os.Environment
-import com.sentinel.app.data.events.EventPipeline
+import com.sentinel.app.data.playback.MjpegSessionRegistry
+import com.sentinel.app.data.playback.StreamUrlResolver
 import com.sentinel.app.domain.model.CameraDevice
 import com.sentinel.app.domain.model.RecordingState
 import com.sentinel.app.domain.service.RecordingController
 import com.sentinel.app.domain.service.RecordingEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * LocalRecordingController — Phase 7
+ * LocalRecordingController
  *
- * Controls per-camera local recording to MP4 files using [MediaMuxer].
+ * Truthful Phase 7 recording implementation.
  *
- * IMPLEMENTATION STATUS:
- *   - Recording state management: FULLY IMPLEMENTED
- *   - File path generation and directory management: FULLY IMPLEMENTED
- *   - MediaMuxer pipeline: SCAFFOLDED
- *     Real encoded video/audio data must come from the ExoPlayer or MJPEG
- *     decode pipeline. ExoPlayer does not expose encoded packets directly
- *     without using a [MediaCodec] surface pipeline — this requires:
- *       1. An offscreen [Surface] created from [MediaCodec.createInputSurface]
- *       2. ExoPlayer rendering into that surface
- *       3. [MediaCodec] encoding and outputting to [MediaMuxer]
- *     This full pipeline is wired in Phase 7 when a background recording
- *     surface is available. The state machine and file management are
- *     complete and ready to accept the encoded data.
+ * What is real:
+ * - MJPEG-backed playback sessions are recorded from the same decoded Bitmap
+ *   frame bus used by the live UI.
+ * - Captured frames are persisted as a multipart Motion JPEG file (`.mjpeg`)
+ *   with a sidecar metadata file (`.properties`) containing duration and frame
+ *   count.
+ * - Recording state only enters RECORDING after a writable output stream and
+ *   capture coroutine are created.
  *
- *   - Listing saved recordings: FULLY IMPLEMENTED
- *   - Storage path from preferences: FULLY IMPLEMENTED
+ * Current limitation:
+ * - RTSP/HLS/ExoPlayer streams are rejected. The current playback architecture
+ *   renders those streams through ExoPlayer but does not expose encoded samples,
+ *   decoded frames, or a secondary recording Surface/MediaCodec pipeline. Writing
+ *   MP4 from those streams would require adding that pipeline first; starting a
+ *   fake MP4 session here would be misleading.
  */
 @Singleton
 class LocalRecordingController @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val eventPipeline: EventPipeline
+    private val streamUrlResolver: StreamUrlResolver,
+    private val mjpegSessionRegistry: MjpegSessionRegistry
 ) : RecordingController {
 
     private data class RecordingSession(
         val cameraId: String,
-        val cameraName: String,
         val outputFile: File,
+        val metadataFile: File,
         val startedAt: Long,
-        var muxer: MediaMuxer? = null,
-        var videoTrackIndex: Int = -1,
-        var audioTrackIndex: Int = -1
+        val outputStream: FileOutputStream,
+        val lock: Any = Any(),
+        var job: Job? = null,
+        var frameCount: Int = 0,
+        var bytesWritten: Long = 0L,
+        var lastFrameAt: Long = 0L
     )
 
-    private val activeSessions   = ConcurrentHashMap<String, RecordingSession>()
-    private val recordingStates  = ConcurrentHashMap<String, MutableStateFlow<RecordingState>>()
+    private val activeSessions = ConcurrentHashMap<String, RecordingSession>()
+    private val recordingStates = ConcurrentHashMap<String, kotlinx.coroutines.flow.MutableStateFlow<RecordingState>>()
+    private val recordingScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    // ─────────────────────────────────────────────────────────────────────
-    // RecordingController interface
-    // ─────────────────────────────────────────────────────────────────────
-
-    override suspend fun startRecording(cameraId: String): Result<Unit> =
+    override suspend fun startRecording(camera: CameraDevice): Result<Unit> =
         withContext(Dispatchers.IO) {
+            val cameraId = camera.id
             if (activeSessions.containsKey(cameraId)) {
                 return@withContext Result.failure(IllegalStateException("Already recording for $cameraId"))
             }
 
-            return@withContext try {
-                val outputFile = createOutputFile(cameraId)
-                val session = RecordingSession(
-                    cameraId   = cameraId,
-                    cameraName = cameraId,  // updated when camera loads
-                    outputFile = outputFile,
-                    startedAt  = System.currentTimeMillis()
-                )
+            val endpoint = streamUrlResolver.resolve(camera)
+                ?: return@withContext Result.failure(IllegalStateException("No playable endpoint resolved for ${camera.name}"))
 
-                // Initialize MediaMuxer — ready to accept encoded video/audio tracks
-                // When ExoPlayer surface pipeline is wired, call:
-                //   session.muxer = MediaMuxer(outputFile.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-                // Then addTrack() with the video format, and start()
-                Timber.i("LocalRecordingController: starting recording for $cameraId → ${outputFile.path}")
+            if (!streamUrlResolver.requiresMjpegRenderer(endpoint)) {
+                return@withContext Result.failure(
+                    UnsupportedOperationException(
+                        "Recording is currently implemented only for MJPEG-backed streams. " +
+                            "${camera.sourceType.name} uses ExoPlayer and has no encoded sample or recording surface pipeline."
+                    )
+                )
+            }
+
+            try {
+                val outputFile = createOutputFile(cameraId)
+                val metadataFile = metadataFileFor(outputFile)
+                outputFile.parentFile?.mkdirs()
+
+                val session = RecordingSession(
+                    cameraId = cameraId,
+                    outputFile = outputFile,
+                    metadataFile = metadataFile,
+                    startedAt = System.currentTimeMillis(),
+                    outputStream = FileOutputStream(outputFile)
+                )
 
                 activeSessions[cameraId] = session
                 setState(cameraId, RecordingState.RECORDING)
 
+                session.job = recordingScope.launch {
+                    mjpegSessionRegistry.frames(cameraId)
+                        .catch { error ->
+                            Timber.e(error, "MJPEG recording frame stream failed for $cameraId")
+                            failSession(cameraId, session, error)
+                        }
+                        .collect { bitmap ->
+                            writeMjpegPart(session, bitmap)
+                        }
+                }
+
+                Timber.i("Recording started for $cameraId -> ${outputFile.absolutePath}")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Timber.e(e, "LocalRecordingController: failed to start recording for $cameraId")
+                activeSessions.remove(cameraId)
                 setState(cameraId, RecordingState.ERROR)
+                Timber.e(e, "Failed to start recording for $cameraId")
                 Result.failure(e)
             }
         }
 
-    override suspend fun stopRecording(cameraId: String): Result<Unit> =
+    override suspend fun stopRecording(cameraId: String): Result<RecordingEntry> =
         withContext(Dispatchers.IO) {
             val session = activeSessions.remove(cameraId)
                 ?: return@withContext Result.failure(IllegalStateException("No active recording for $cameraId"))
 
-            return@withContext try {
-                setState(cameraId, RecordingState.SAVING)
+            setState(cameraId, RecordingState.SAVING)
 
-                // Stop and release muxer if it was started
-                session.muxer?.let { muxer ->
-                    try { muxer.stop() } catch (_: Exception) {}
-                    muxer.release()
+            try {
+                session.job?.cancelAndJoin()
+                closeSession(session)
+
+                if (session.frameCount == 0) {
+                    session.outputFile.delete()
+                    session.metadataFile.delete()
+                    setState(cameraId, RecordingState.IDLE)
+                    return@withContext Result.failure(
+                        IOException("Recording stopped without captured frames; no output file was kept.")
+                    )
                 }
 
-                val durationMs  = System.currentTimeMillis() - session.startedAt
-                val durationSec = durationMs / 1000
+                val endedAt = System.currentTimeMillis()
+                val durationSeconds = ((endedAt - session.startedAt) / 1000L).coerceAtLeast(1L)
+                writeMetadata(session, endedAt, durationSeconds)
 
-                Timber.i("LocalRecordingController: stopped recording for $cameraId, duration=${durationSec}s, file=${session.outputFile.path}")
-
-                setState(cameraId, RecordingState.IDLE)
-
-                // Log the event through the pipeline
-                // We use a minimal CameraDevice stand-in since full device
-                // loading from repo is async and we're on IO dispatcher
-                eventPipeline.recordRecordingStopped(
-                    camera = minimalDevice(session.cameraId, session.cameraName),
-                    durationSeconds = durationSec
+                val entry = RecordingEntry(
+                    filePath = session.outputFile.absolutePath,
+                    cameraId = cameraId,
+                    startedAt = session.startedAt,
+                    durationSeconds = durationSeconds,
+                    sizeBytes = session.outputFile.length()
                 )
 
-                Result.success(Unit)
+                Timber.i(
+                    "Recording stopped for $cameraId: frames=${session.frameCount}, " +
+                        "duration=${durationSeconds}s, file=${session.outputFile.absolutePath}"
+                )
+                setState(cameraId, RecordingState.IDLE)
+                Result.success(entry)
             } catch (e: Exception) {
-                Timber.e(e, "LocalRecordingController: failed to stop recording for $cameraId")
                 setState(cameraId, RecordingState.ERROR)
+                Timber.e(e, "Failed to stop recording for $cameraId")
                 Result.failure(e)
             }
         }
 
-    override fun observeRecordingState(cameraId: String): Flow<RecordingState> =
+    override fun observeRecordingState(cameraId: String): kotlinx.coroutines.flow.Flow<RecordingState> =
         getStateFlow(cameraId).asStateFlow()
 
     override suspend fun getRecordings(cameraId: String): List<RecordingEntry> =
@@ -147,102 +186,119 @@ class LocalRecordingController @Inject constructor(
             val dir = recordingsDir(cameraId)
             if (!dir.exists()) return@withContext emptyList()
 
-            dir.listFiles { f -> f.extension == "mp4" }
+            dir.listFiles { file -> file.extension.equals("mjpeg", ignoreCase = true) }
                 ?.sortedByDescending { it.lastModified() }
                 ?.map { file ->
+                    val metadata = readMetadata(metadataFileFor(file))
                     RecordingEntry(
-                        filePath        = file.absolutePath,
-                        cameraId        = cameraId,
-                        startedAt       = file.lastModified(),
-                        durationSeconds = estimateDuration(file),
-                        sizeBytes       = file.length()
+                        filePath = file.absolutePath,
+                        cameraId = cameraId,
+                        startedAt = metadata.startedAt ?: file.lastModified(),
+                        durationSeconds = metadata.durationSeconds ?: 0L,
+                        sizeBytes = file.length()
                     )
                 }
                 ?: emptyList()
         }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // MediaMuxer data ingestion
-    // Called by the ExoPlayer surface pipeline when encoded frames arrive.
-    // ─────────────────────────────────────────────────────────────────────
+    private fun writeMjpegPart(session: RecordingSession, bitmap: Bitmap) {
+        val jpegBytes = ByteArrayOutputStream().use { encoded ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, encoded)
+            encoded.toByteArray()
+        }
 
-    /**
-     * Add a video track to the active muxer session.
-     * Call once with the video [MediaFormat] before writing any samples.
-     * Returns the track index to use in [writeSample].
-     */
-    fun addVideoTrack(cameraId: String, format: MediaFormat): Int {
-        val session = activeSessions[cameraId] ?: return -1
-        if (session.muxer == null) {
-            session.muxer = MediaMuxer(
-                session.outputFile.path,
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+        val now = System.currentTimeMillis()
+        val header = buildString {
+            append("--$BOUNDARY\r\n")
+            append("Content-Type: image/jpeg\r\n")
+            append("Content-Length: ${jpegBytes.size}\r\n")
+            append("X-Timestamp-Ms: $now\r\n")
+            append("\r\n")
+        }.toByteArray(Charsets.US_ASCII)
+
+        synchronized(session.lock) {
+            session.outputStream.write(header)
+            session.outputStream.write(jpegBytes)
+            session.outputStream.write(CRLF)
+            session.frameCount += 1
+            session.bytesWritten += header.size + jpegBytes.size + CRLF.size
+            session.lastFrameAt = now
+        }
+    }
+
+    private fun failSession(cameraId: String, session: RecordingSession, error: Throwable) {
+        if (activeSessions.remove(cameraId, session)) {
+            closeSession(session)
+            setState(cameraId, RecordingState.ERROR)
+            Timber.e(error, "Recording session failed for $cameraId")
+        }
+    }
+
+    private fun closeSession(session: RecordingSession) {
+        synchronized(session.lock) {
+            runCatching {
+                session.outputStream.write("--$BOUNDARY--\r\n".toByteArray(Charsets.US_ASCII))
+                session.outputStream.flush()
+            }
+            runCatching { session.outputStream.fd.sync() }
+            runCatching { session.outputStream.close() }
+        }
+    }
+
+    private fun writeMetadata(session: RecordingSession, endedAt: Long, durationSeconds: Long) {
+        Properties().apply {
+            setProperty("format", "multipart-motion-jpeg")
+            setProperty("cameraId", session.cameraId)
+            setProperty("startedAt", session.startedAt.toString())
+            setProperty("endedAt", endedAt.toString())
+            setProperty("durationSeconds", durationSeconds.toString())
+            setProperty("frameCount", session.frameCount.toString())
+            setProperty("bytesWritten", session.bytesWritten.toString())
+            setProperty("boundary", BOUNDARY)
+        }.store(FileOutputStream(session.metadataFile), "Sentinel recording metadata")
+    }
+
+    private fun readMetadata(file: File): RecordingMetadata {
+        if (!file.exists()) return RecordingMetadata()
+        return runCatching {
+            val props = Properties()
+            file.inputStream().use { props.load(it) }
+            RecordingMetadata(
+                startedAt = props.getProperty("startedAt")?.toLongOrNull(),
+                durationSeconds = props.getProperty("durationSeconds")?.toLongOrNull()
             )
-        }
-        val idx = session.muxer!!.addTrack(format)
-        session.videoTrackIndex = idx
-        if (session.videoTrackIndex >= 0 && session.audioTrackIndex >= 0) {
-            session.muxer!!.start()
-        }
-        return idx
+        }.getOrDefault(RecordingMetadata())
     }
-
-    /**
-     * Write an encoded video/audio sample to the muxer.
-     * Call from the MediaCodec output callback.
-     */
-    fun writeSample(
-        cameraId: String,
-        trackIndex: Int,
-        buffer: java.nio.ByteBuffer,
-        bufferInfo: MediaCodec.BufferInfo
-    ) {
-        activeSessions[cameraId]?.muxer?.writeSampleData(trackIndex, buffer, bufferInfo)
-    }
-
-    // ─────────────────────────────────────────────────────────────────────
-    // Storage helpers
-    // ─────────────────────────────────────────────────────────────────────
 
     private fun createOutputFile(cameraId: String): File {
         val dir = recordingsDir(cameraId)
         dir.mkdirs()
         val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        return File(dir, "REC_${cameraId.take(8).uppercase()}_$ts.mp4")
+        return File(dir, "REC_${cameraId.take(8).uppercase(Locale.US)}_$ts.mjpeg")
     }
 
+    private fun metadataFileFor(recordingFile: File): File =
+        File(recordingFile.parentFile ?: context.filesDir, "${recordingFile.nameWithoutExtension}.properties")
+
     private fun recordingsDir(cameraId: String): File {
-        val base = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
-            ?: context.filesDir
+        val base = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: context.filesDir
         return File(base, "SentinelRecordings/${cameraId.take(12)}")
     }
 
-    private fun estimateDuration(file: File): Long {
-        // Without parsing the MP4 container, estimate from file size and typical bitrate
-        // Real implementation should use MediaMetadataRetriever
-        val assumedBitrateBytes = 500_000L  // 4 Mbps / 8 = 500 KB/s
-        return file.length() / assumedBitrateBytes
-    }
-
-    // ─────────────────────────────────────────────────────────────────────
-    // State helpers
-    // ─────────────────────────────────────────────────────────────────────
-
-    private fun getStateFlow(cameraId: String): MutableStateFlow<RecordingState> =
-        recordingStates.getOrPut(cameraId) { MutableStateFlow(RecordingState.IDLE) }
+    private fun getStateFlow(cameraId: String): kotlinx.coroutines.flow.MutableStateFlow<RecordingState> =
+        recordingStates.getOrPut(cameraId) { kotlinx.coroutines.flow.MutableStateFlow(RecordingState.IDLE) }
 
     private fun setState(cameraId: String, state: RecordingState) {
         getStateFlow(cameraId).value = state
     }
 
-    private fun minimalDevice(id: String, name: String): CameraDevice =
-        CameraDevice(
-            id               = id,
-            name             = name,
-            room             = "",
-            sourceType       = com.sentinel.app.domain.model.CameraSourceType.RTSP,
-            connectionProfile = com.sentinel.app.domain.model.CameraConnectionProfile(
-                host = "", port = 554
-            )
-        )
+    private data class RecordingMetadata(
+        val startedAt: Long? = null,
+        val durationSeconds: Long? = null
+    )
+
+    private companion object {
+        const val BOUNDARY = "sentinel-mjpeg-frame"
+        val CRLF = "\r\n".toByteArray(Charsets.US_ASCII)
+    }
 }

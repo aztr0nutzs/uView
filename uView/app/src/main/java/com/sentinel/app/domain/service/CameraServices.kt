@@ -92,16 +92,15 @@ interface CameraPlaybackService {
 // ─────────────────────────────────────────────────────────────────────────────
 // RecordingController
 // Controls local recording state for camera streams.
-// NOTE: Real implementation requires a foreground service. Scaffolded here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface RecordingController {
 
     /** Start recording the stream for a camera. */
-    suspend fun startRecording(cameraId: String): Result<Unit>
+    suspend fun startRecording(camera: CameraDevice): Result<Unit>
 
     /** Stop recording. */
-    suspend fun stopRecording(cameraId: String): Result<Unit>
+    suspend fun stopRecording(cameraId: String): Result<RecordingEntry>
 
     /** Observe recording state for a camera. */
     fun observeRecordingState(cameraId: String): Flow<com.sentinel.app.domain.model.RecordingState>

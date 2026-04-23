@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.sentinel.app.data.events.EventPipeline
-import com.sentinel.app.data.recording.LocalRecordingController
 import com.sentinel.app.domain.model.RecordingState
 import com.sentinel.app.domain.service.RecordingController
 import com.sentinel.app.data.motion.MotionMonitorService
@@ -19,9 +18,11 @@ import com.sentinel.app.domain.model.ConnectionTestResult
 import com.sentinel.app.domain.model.MotionDetectorState
 import com.sentinel.app.domain.model.MotionSensitivityConfig
 import com.sentinel.app.domain.model.PlayerState
+import com.sentinel.app.domain.model.SnapshotRequest
 import com.sentinel.app.domain.repository.CameraEventRepository
 import com.sentinel.app.domain.repository.CameraRepository
 import com.sentinel.app.domain.service.CameraConnectionTester
+import com.sentinel.app.domain.service.SnapshotController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +44,8 @@ data class CameraDetailUiState(
     val isLoading: Boolean = true,
     val selectedTab: DetailTab = DetailTab.LIVE,
     val motionDetectorState: MotionDetectorState = MotionDetectorState.Idle,
-    val recordingState: RecordingState = RecordingState.IDLE
+    val recordingState: RecordingState = RecordingState.IDLE,
+    val actionMessage: String? = null
 )
 
 enum class DetailTab(val label: String) {
@@ -60,7 +62,8 @@ class CameraDetailViewModel @Inject constructor(
     private val playbackManager: PlaybackManager,
     private val motionMonitorService: MotionMonitorService,
     private val eventPipeline: EventPipeline,
-    private val recordingController: RecordingController
+    private val recordingController: RecordingController,
+    private val snapshotController: SnapshotController
 ) : ViewModel() {
 
     private val cameraId: String = checkNotNull(savedStateHandle["cameraId"])
@@ -111,19 +114,36 @@ class CameraDetailViewModel @Inject constructor(
 
     fun testConnection() = viewModelScope.launch {
         val camera = uiState.value.camera ?: return@launch
-        _extraState.update { it.copy(isTestingConnection = true) }
+        _extraState.update { it.copy(isTestingConnection = true, actionMessage = null) }
         val result = connectionTester.testConnection(camera)
-        _extraState.update { it.copy(isTestingConnection = false, lastTestResult = result) }
+        _extraState.update {
+            it.copy(
+                isTestingConnection = false,
+                lastTestResult = result,
+                actionMessage = if (result.success) "DIAGNOSTIC_HOST_REACHABLE" else "DIAGNOSTIC_FAILED"
+            )
+        }
     }
 
     fun takeSnapshot() = viewModelScope.launch {
         val camera = uiState.value.camera ?: return@launch
-        _extraState.update { it.copy(isTakingSnapshot = true) }
-        // Phase 7: real snapshot via SnapshotControllerImpl
-        kotlinx.coroutines.delay(300)
-        _extraState.update { it.copy(isTakingSnapshot = false) }
-        // Log the event via pipeline
-        eventPipeline.recordSnapshotTaken(camera, savedPath = null)
+        _extraState.update { it.copy(isTakingSnapshot = true, actionMessage = null) }
+
+        val result = snapshotController.takeSnapshot(SnapshotRequest(cameraId = cameraId))
+        if (result.success) {
+            eventPipeline.recordSnapshotTaken(camera, savedPath = result.savedPath)
+        }
+
+        _extraState.update {
+            it.copy(
+                isTakingSnapshot = false,
+                actionMessage = if (result.success) {
+                    "SNAPSHOT_SAVED"
+                } else {
+                    "SNAPSHOT_FAILED_${result.errorMessage.orEmpty()}".take(80)
+                }
+            )
+        }
     }
 
     /** Submit an ExoPlayer video frame for motion analysis. */
@@ -134,11 +154,21 @@ class CameraDetailViewModel @Inject constructor(
     fun toggleRecording() = viewModelScope.launch {
         val camera = uiState.value.camera ?: return@launch
         if (recordingState.value == RecordingState.RECORDING) {
-            recordingController.stopRecording(cameraId)
-            eventPipeline.recordRecordingStopped(camera, durationSeconds = 0)
+            val result = recordingController.stopRecording(cameraId)
+            result.onSuccess { entry ->
+                eventPipeline.recordRecordingStopped(camera, durationSeconds = entry.durationSeconds)
+                _extraState.update { it.copy(actionMessage = "RECORDING_SAVED") }
+            }.onFailure { error ->
+                _extraState.update { it.copy(actionMessage = "RECORDING_STOP_FAILED_${error.message.orEmpty()}".take(96)) }
+            }
         } else {
-            recordingController.startRecording(cameraId)
-            eventPipeline.recordRecordingStarted(camera)
+            val result = recordingController.startRecording(camera)
+            result.onSuccess {
+                eventPipeline.recordRecordingStarted(camera)
+                _extraState.update { it.copy(actionMessage = "RECORDING_STARTED") }
+            }.onFailure { error ->
+                _extraState.update { it.copy(actionMessage = "RECORDING_UNAVAILABLE_${error.message.orEmpty()}".take(96)) }
+            }
         }
     }
 
