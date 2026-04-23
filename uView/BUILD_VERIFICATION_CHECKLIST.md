@@ -63,3 +63,17 @@ Run this from the Android project directory before creating a release archive:
 ```
 
 If this command fails, the archive is not contributor-ready.
+
+## Latest Local Verification
+
+Attempted on 2026-04-23:
+
+```powershell
+.\gradlew.bat --version
+.\gradlew.bat :app:assembleDebug
+```
+
+Observed result:
+
+- `.\gradlew.bat --version` succeeded with Gradle 8.6 on JDK 21.
+- `.\gradlew.bat :app:assembleDebug` did not reach Kotlin/Java compilation because this workstation has no Android SDK configured. Set `ANDROID_HOME`, `ANDROID_SDK_ROOT`, or create `local.properties` with a valid `sdk.dir` before rerunning.
