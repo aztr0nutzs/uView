@@ -105,9 +105,19 @@ interface RecordingController {
     /** Observe recording state for a camera. */
     fun observeRecordingState(cameraId: String): Flow<com.sentinel.app.domain.model.RecordingState>
 
+    /** Returns truthful per-camera recording support. */
+    suspend fun getRecordingCapability(camera: CameraDevice): RecordingCapability
+
     /** List recorded files for a camera. */
     suspend fun getRecordings(cameraId: String): List<RecordingEntry>
 }
+
+data class RecordingCapability(
+    val supported: Boolean,
+    val requiresActivePlayback: Boolean,
+    val outputFormat: String?,
+    val reason: String? = null
+)
 
 data class RecordingEntry(
     val filePath: String,

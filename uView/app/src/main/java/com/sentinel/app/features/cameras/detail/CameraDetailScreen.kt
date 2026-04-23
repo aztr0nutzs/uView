@@ -157,6 +157,8 @@ fun CameraDetailScreen(
                 TacticalActionStrip(
                     isTakingSnapshot = state.isTakingSnapshot,
                     isRecording = recordingState == RecordingState.RECORDING,
+                    isRecordingSupported = state.recordingCapability.supported,
+                    recordingUnavailableReason = state.recordingCapability.reason,
                     isFavorite = camera.isFavorite,
                     isMuted = isMuted,
                     onSnapshot = viewModel::takeSnapshot,
@@ -539,6 +541,8 @@ private fun ErrorFeedOverlay(message: String, onReconnect: () -> Unit) {
 private fun TacticalActionStrip(
     isTakingSnapshot: Boolean,
     isRecording: Boolean,
+    isRecordingSupported: Boolean,
+    recordingUnavailableReason: String?,
     isFavorite: Boolean,
     isMuted: Boolean,
     onSnapshot: () -> Unit,
@@ -549,12 +553,25 @@ private fun TacticalActionStrip(
     onSettings: () -> Unit
 ) {
     val actions = listOf(
-        ActionSpec(Icons.Default.CameraAlt, if (isTakingSnapshot) "CAPTURING" else "SNAPSHOT", CyanTertiaryDim, false, false, onSnapshot),
-        ActionSpec(Icons.Default.FiberManualRecord, if (isRecording) "RECORDING" else "RECORD", ErrorRed, isRecording, isRecording, onRecording),
-        ActionSpec(Icons.Default.Sync, "RECONNECT", GreenOnline, false, false, onReconnect),
-        ActionSpec(if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, if (isMuted) "UNMUTE" else "MUTE", TextPrimary, false, false, onMute),
-        ActionSpec(if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, "FAVORITE", OrangePrimary, isFavorite, false, onFavorite),
-        ActionSpec(Icons.Default.Settings, "SETTINGS", TextPrimary, false, false, onSettings)
+        ActionSpec(icon = Icons.Default.CameraAlt, label = if (isTakingSnapshot) "CAPTURING" else "SNAPSHOT", color = CyanTertiaryDim, active = false, pulse = false, onClick = onSnapshot),
+        ActionSpec(
+            icon = Icons.Default.FiberManualRecord,
+            label = when {
+                isRecording -> "RECORDING"
+                isRecordingSupported -> "RECORD"
+                else -> "UNAVAILABLE"
+            },
+            color = if (isRecordingSupported || isRecording) ErrorRed else TextDisabled,
+            active = isRecording,
+            pulse = isRecording,
+            enabled = isRecordingSupported || isRecording,
+            onClick = onRecording,
+            description = recordingUnavailableReason
+        ),
+        ActionSpec(icon = Icons.Default.Sync, label = "RECONNECT", color = GreenOnline, active = false, pulse = false, onClick = onReconnect),
+        ActionSpec(icon = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, label = if (isMuted) "UNMUTE" else "MUTE", color = TextPrimary, active = false, pulse = false, onClick = onMute),
+        ActionSpec(icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, label = "FAVORITE", color = OrangePrimary, active = isFavorite, pulse = false, onClick = onFavorite),
+        ActionSpec(icon = Icons.Default.Settings, label = "SETTINGS", color = TextPrimary, active = false, pulse = false, onClick = onSettings)
     )
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
@@ -598,7 +615,7 @@ private fun TacticalStripButton(action: ActionSpec, modifier: Modifier = Modifie
                     size = Size(size.width, 4.dp.toPx())
                 )
             }
-            .clickable(onClick = action.onClick)
+            .clickable(enabled = action.enabled, onClick = action.onClick)
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -608,10 +625,24 @@ private fun TacticalStripButton(action: ActionSpec, modifier: Modifier = Modifie
         HudText(
             text = action.label,
             fontSize = 10,
-            color = if (action.active || action.pulse) action.color else TextSecondary,
+            color = when {
+                !action.enabled -> TextDisabled
+                action.active || action.pulse -> action.color
+                else -> TextSecondary
+            },
             weight = FontWeight.Black,
             maxLines = 1
         )
+        if (!action.enabled && !action.description.isNullOrBlank()) {
+            Spacer(Modifier.height(2.dp))
+            HudText(
+                text = "LOCKED",
+                fontSize = 8,
+                color = TextDisabled,
+                weight = FontWeight.Black,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -893,7 +924,9 @@ private data class ActionSpec(
     val color: Color,
     val active: Boolean,
     val pulse: Boolean,
-    val onClick: () -> Unit
+    val enabled: Boolean = true,
+    val onClick: () -> Unit,
+    val description: String? = null
 )
 
 private fun metric(text: String, unavailable: Boolean = text == "UNAVAILABLE"): MetricValue =
