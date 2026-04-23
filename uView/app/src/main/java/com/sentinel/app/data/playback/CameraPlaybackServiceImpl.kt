@@ -290,7 +290,6 @@ class CameraPlaybackServiceImpl @Inject constructor(
             scheduler.waitBeforeNextAttempt()
         }
     }
-}
 
     // ─────────────────────────────────────────────────────────────────────────
     // Internal helpers used by ViewModels
@@ -300,7 +299,7 @@ class CameraPlaybackServiceImpl @Inject constructor(
      * Returns the active [ExoPlayer] for [cameraId], or null if the session
      * is MJPEG-based or not yet started.
      */
-    fun getExoPlayer(cameraId: String): ExoPlayer? =
+    fun getExoPlayer(cameraId: String): androidx.media3.exoplayer.ExoPlayer? =
         sessions[cameraId]?.exoPlayer
 
     /**
@@ -334,7 +333,8 @@ class CameraPlaybackServiceImpl @Inject constructor(
             ))
         }
         session.setState(PlayerState.StreamUnsupported)
-    
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors called by PlaybackManager
     // ─────────────────────────────────────────────────────────────────────────
@@ -354,5 +354,4 @@ class CameraPlaybackServiceImpl @Inject constructor(
      */
     fun getMjpegFrames(cameraId: String): kotlinx.coroutines.flow.Flow<android.graphics.Bitmap> =
         mjpegSessionRegistry.frames(cameraId)
-
 }

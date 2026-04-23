@@ -85,7 +85,7 @@ class StorageManager @Inject constructor(
         if (!recordingsBaseDir.exists()) return@withContext emptyList()
 
         recordingsBaseDir.walkTopDown()
-            .filter { it.isFile && it.extension == "mp4" }
+            .filter { it.isFile && it.extension.equals("mjpeg", ignoreCase = true) }
             .map { file ->
                 RecordingFile(
                     path      = file.absolutePath,
@@ -112,6 +112,9 @@ class StorageManager @Inject constructor(
         val file = File(path)
         if (!file.exists()) return@withContext false
         val deleted = file.delete()
+        // Also remove the sidecar metadata file (.properties) written by LocalRecordingController
+        val metadataFile = File(file.parentFile ?: file, "${file.nameWithoutExtension}.properties")
+        if (metadataFile.exists()) metadataFile.delete()
         Timber.d("StorageManager: deleted $path → $deleted")
         deleted
     }
@@ -149,7 +152,7 @@ class StorageManager @Inject constructor(
     suspend fun deleteAllForCamera(cameraId: String): Int = withContext(Dispatchers.IO) {
         val dir = File(recordingsBaseDir, cameraId.take(12))
         if (!dir.exists()) return@withContext 0
-        val files = dir.listFiles { f -> f.extension == "mp4" } ?: return@withContext 0
+        val files = dir.listFiles { f -> f.extension.equals("mjpeg", ignoreCase = true) } ?: return@withContext 0
         var count = 0
         files.forEach { if (it.delete()) count++ }
         Timber.d("StorageManager: deleted $count recordings for $cameraId")
