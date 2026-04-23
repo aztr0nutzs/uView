@@ -9,6 +9,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.sentinel.app.data.events.EventPipeline
 import com.sentinel.app.domain.model.RecordingState
+import com.sentinel.app.domain.service.RecordingCapability
 import com.sentinel.app.domain.service.RecordingController
 import com.sentinel.app.data.motion.MotionMonitorService
 import com.sentinel.app.data.playback.PlaybackManager
@@ -45,6 +46,12 @@ data class CameraDetailUiState(
     val selectedTab: DetailTab = DetailTab.LIVE,
     val motionDetectorState: MotionDetectorState = MotionDetectorState.Idle,
     val recordingState: RecordingState = RecordingState.IDLE,
+    val recordingCapability: RecordingCapability = RecordingCapability(
+        supported = false,
+        requiresActivePlayback = true,
+        outputFormat = null,
+        reason = "Checking recording support"
+    ),
     val actionMessage: String? = null
 )
 
@@ -95,6 +102,8 @@ class CameraDetailViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val camera = uiState.first { it.camera != null }.camera ?: return@launch
+            val capability = recordingController.getRecordingCapability(camera)
+            _extraState.update { it.copy(recordingCapability = capability) }
             playbackManager.startCamera(camera)
             // Start motion monitoring when this detail screen opens
             motionMonitorService.startMonitoring(camera, MotionSensitivityConfig.MEDIUM)
@@ -153,6 +162,14 @@ class CameraDetailViewModel @Inject constructor(
 
     fun toggleRecording() = viewModelScope.launch {
         val camera = uiState.value.camera ?: return@launch
+        val capability = _extraState.value.recordingCapability
+        if (!capability.supported) {
+            _extraState.update {
+                it.copy(actionMessage = "RECORDING_UNAVAILABLE_${capability.reason.orEmpty()}".take(96))
+            }
+            return@launch
+        }
+
         if (recordingState.value == RecordingState.RECORDING) {
             val result = recordingController.stopRecording(cameraId)
             result.onSuccess { entry ->
