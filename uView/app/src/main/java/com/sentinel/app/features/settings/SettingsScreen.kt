@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BatteryChargingFull
@@ -43,7 +46,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
@@ -55,9 +60,10 @@ import com.sentinel.app.ui.components.SettingsDivider
 import com.sentinel.app.ui.components.SettingsNavRow
 import com.sentinel.app.ui.components.SettingsToggleRow
 import com.sentinel.app.ui.theme.BackgroundDeep
+import com.sentinel.app.ui.theme.CyanSubtle
 import com.sentinel.app.ui.theme.SentinelTheme
-import com.sentinel.app.ui.theme.StatusOffline
 import com.sentinel.app.ui.theme.SurfaceStroke
+import com.sentinel.app.ui.theme.TextDisabled
 import com.sentinel.app.ui.theme.TextPrimary
 import com.sentinel.app.ui.theme.TextSecondary
 import com.sentinel.app.ui.theme.WarningAmber
@@ -165,12 +171,12 @@ private fun SettingsContent(
             // ── Stream & Playback ─────────────────────────────────────────
             item {
                 SectionCard(title = "Stream & Playback") {
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.Videocam,
                         title = "Default Stream Quality",
-                        subtitle = "Quality used when opening a new feed",
+                        subtitle = "Per-camera quality is active; global default override is not wired in this build",
                         valueLabel = settings.defaultStreamQuality.label,
-                        onClick = { /* future: quality picker bottom sheet */ }
+                        availability = "UNAVAILABLE"
                     )
                     SettingsDivider()
                     SettingsToggleRow(
@@ -194,12 +200,12 @@ private fun SettingsContent(
                         onCheckedChange = onSetNotifications
                     )
                     SettingsDivider()
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.Settings,
                         title = "Motion Sensitivity",
-                        subtitle = "Pixels must change by this amount to count as motion",
+                        subtitle = "Global sensitivity control is not connected; live motion uses per-session MEDIUM profile",
                         valueLabel = settings.motionSensitivity.label,
-                        onClick = { /* Phase 5: show bottom sheet with LOW/MEDIUM/HIGH/DISABLED options */ }
+                        availability = "UNAVAILABLE"
                     )
                 }
             }
@@ -223,12 +229,12 @@ private fun SettingsContent(
                         onCheckedChange = onSetNetworkScan
                     )
                     SettingsDivider()
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.NetworkCheck,
                         title = "Scan Subnet",
-                        subtitle = "Override subnet for discovery (empty = auto)",
+                        subtitle = "Manual subnet override UI is not implemented yet",
                         valueLabel = settings.networkScanSubnet.ifBlank { "Auto" },
-                        onClick = { /* future: input dialog */ }
+                        availability = "UNAVAILABLE"
                     )
                 }
             }
@@ -236,20 +242,20 @@ private fun SettingsContent(
             // ── Storage ───────────────────────────────────────────────────
             item {
                 SectionCard(title = "Storage") {
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.FolderOpen,
                         title = "Recording Save Path",
-                        subtitle = "Where local recordings are saved",
-                        valueLabel = if (settings.localStoragePath.isBlank()) "Default" else "Custom",
-                        onClick = { /* future: folder picker */ }
+                        subtitle = "Custom folder picker is not wired; recordings use app-managed Movies/SentinelRecordings",
+                        valueLabel = "APP MANAGED",
+                        availability = "LOCKED"
                     )
                     SettingsDivider()
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.Settings,
                         title = "Event Retention",
-                        subtitle = "How long to keep event history",
+                        subtitle = "Retention pruning pipeline is not wired to this preference yet",
                         valueLabel = "${settings.eventRetentionDays} days",
-                        onClick = { /* Phase 5: show bottom sheet with LOW/MEDIUM/HIGH/DISABLED options */ }
+                        availability = "UNAVAILABLE"
                     )
                 }
             }
@@ -330,11 +336,12 @@ private fun SettingsContent(
             // ── About ─────────────────────────────────────────────────────
             item {
                 SectionCard(title = "About") {
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.Info,
                         title = "Sentinel Home",
                         subtitle = "Version 1.0.0 — Personal camera hub",
-                        onClick = {}
+                        valueLabel = "INFO",
+                        availability = null
                     )
                     SettingsDivider()
                     SettingsNavRow(
@@ -349,6 +356,64 @@ private fun SettingsContent(
             }
 
             item { Spacer(Modifier.height(32.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun SettingsInfoRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    valueLabel: String? = null,
+    availability: String? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .background(CyanSubtle.copy(alpha = 0.55f), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TextDisabled
+            )
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextDisabled
+            )
+            availability?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = WarningAmber,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        valueLabel?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextDisabled
+            )
         }
     }
 }
