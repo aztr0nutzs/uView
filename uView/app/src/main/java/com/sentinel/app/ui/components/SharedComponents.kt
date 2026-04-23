@@ -170,7 +170,9 @@ fun SettingsToggleRow(
     subtitle: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconTint: Color = CyanPrimary,
+    iconBg: Color = CyanSubtle
 ) {
     Row(
         modifier = modifier
@@ -183,13 +185,13 @@ fun SettingsToggleRow(
             modifier = Modifier
                 .size(38.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(CyanSubtle),
+                .background(iconBg),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = CyanPrimary,
+                tint = iconTint,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -428,5 +430,4 @@ private fun formatEventTime(timestampMs: Long): String {
         else                 -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestampMs))
     }
 }
-
 

@@ -72,8 +72,11 @@ is compromised.
 ### Recording & Snapshots
 
 The application can record local copies of streams and capture
-snapshots. Recordings run through a `RecordingController` which uses
-`MediaMuxer` to write MP4 files. Snapshots are saved as JPEGs in the
+snapshots. Recording support is currently **truthful and stream-type
+dependent**: MJPEG-backed sessions can be written as multipart MJPEG
+(`.mjpeg`) with sidecar metadata, while ExoPlayer-backed streams
+(RTSP/HLS/etc.) are explicitly treated as unsupported until an encoded
+sample pipeline is implemented. Snapshots are saved as JPEGs in the
 external files directory and displayed in a dedicated gallery. A
 `StorageManager` monitors space and prunes old files.
 
@@ -94,10 +97,10 @@ cameras and repopulates the database from the imported file.
 
 ## Recommendations & Future Work
 
-- **Biometric authentication:** The current app lock stub always
-  authenticates successfully. Integrate `BiometricPrompt` and
-  optionally allow a PIN fallback. The lock screen should not degrade
-  the user experience.
+- **App lock behavior:** Biometric/device-credential authentication is
+  implemented via `BiometricPrompt`. Contributors should preserve the
+  current truthful behavior (enablement failure when no credential is
+  configured) and avoid reintroducing stubbed unlock paths.
 - **Crash reporting:** Replace the placeholder `CrashReportingTree`
   implementation with Firebase Crashlytics or another crash
   aggregation service for real insights in production.
@@ -150,3 +153,8 @@ not just source files. Each inspection must verify:
    run, and clean verification commands.
 5. No build repair may alter the authoritative HTML-derived HUD interface
    unless an explicit feature requirement authorizes UI changes.
+6. Settings rows must be truthful: no future-only/no-op/deceptive
+   controls may remain interactive.
+7. Recording claims must be truthful per stream type. Do not claim
+   end-to-end recording support for ExoPlayer-backed streams unless an
+   actual encoded-sample pipeline exists and is wired.
