@@ -40,6 +40,11 @@ class MjpegSessionRegistry @Inject constructor() {
         getOrCreate(cameraId).asSharedFlow()
 
     /**
+     * True when an MJPEG session flow exists for [cameraId].
+     */
+    fun hasActiveSession(cameraId: String): Boolean = frameFlows.containsKey(cameraId)
+
+    /**
      * Remove and discard the flow for [cameraId] when the session stops.
      */
     fun remove(cameraId: String) {
