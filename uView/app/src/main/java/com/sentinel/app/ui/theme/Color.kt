@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 
 // ── Primary — Orange ─────────────────────────────────────────────────────────
 val OrangePrimary      = Color(0xFFFF6B00)   // main CTA, active nav, header text
+val OrangeSoft         = Color(0xFFFF9159)   // HTML primary token
 val OrangeDim          = Color(0xFFFF7524)   // pressed state
 val OrangeContainer    = Color(0xFFFF7A2F)   // button fill
 val OrangeSubtle       = Color(0x1AFF6B00)   // tinted surface (10% alpha)
@@ -51,6 +52,7 @@ val RecordingRed       = ErrorRed
 // ── Backgrounds (layered) ─────────────────────────────────────────────────────
 val BackgroundDeep     = Color(0xFF0E0E0E)   // true app background (HTML: surface-dim)
 val SurfaceLowest      = Color(0xFF000000)   // darkest surface (HTML: surface-container-lowest)
+val SurfaceLow         = Color(0xFF131313)   // low surface (HTML: surface-container-low)
 val SurfaceBase        = Color(0xFF1A1A1A)   // card surface (HTML: surface-container)
 val SurfaceElevated    = Color(0xFF20201F)   // raised surface (HTML: surface-container-high)
 val SurfaceHighest     = Color(0xFF262626)   // top surface (HTML: surface-container-highest)
