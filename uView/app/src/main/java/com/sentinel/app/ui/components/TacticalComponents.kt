@@ -490,3 +490,69 @@ fun CornerBrackets(
             })
     }
 }
+
+@Composable
+fun FastenerDots(
+    modifier: Modifier = Modifier,
+    color: Color = SurfaceStroke,
+    size: Dp = 4.dp,
+    inset: Dp = 2.dp
+) {
+    Box(modifier = modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .size(size)
+                .align(Alignment.TopStart)
+                .offset(inset, inset)
+                .background(color)
+        )
+        Box(
+            Modifier
+                .size(size)
+                .align(Alignment.TopEnd)
+                .offset(-inset, inset)
+                .background(color)
+        )
+        Box(
+            Modifier
+                .size(size)
+                .align(Alignment.BottomStart)
+                .offset(inset, -inset)
+                .background(color)
+        )
+        Box(
+            Modifier
+                .size(size)
+                .align(Alignment.BottomEnd)
+                .offset(-inset, -inset)
+                .background(color)
+        )
+    }
+}
+
+@Composable
+fun TacticalFramePanel(
+    modifier: Modifier = Modifier,
+    leftAccent: Color = Color.Transparent,
+    fill: Color = SurfaceBase,
+    contentPadding: Dp = 12.dp,
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(fill)
+            .drawBehind {
+                if (leftAccent.alpha > 0f) {
+                    drawRect(
+                        color = leftAccent,
+                        topLeft = Offset.Zero,
+                        size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height)
+                    )
+                }
+            }
+            .padding(contentPadding)
+    ) {
+        content()
+        FastenerDots()
+    }
+}
