@@ -117,8 +117,7 @@ fun AppNavGraph(
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 onNavigateBack        = { navController.popBackStack() },
-                onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
-                onNavigatePrivacy     = { /* future: privacy/permissions screen */ }
+                onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) }
             )
         }
 
