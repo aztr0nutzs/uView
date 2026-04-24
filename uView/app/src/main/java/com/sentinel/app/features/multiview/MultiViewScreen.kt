@@ -67,7 +67,9 @@ import com.sentinel.app.domain.model.CameraDevice
 import com.sentinel.app.domain.model.CameraEvent
 import com.sentinel.app.domain.model.PlayerState
 import com.sentinel.app.ui.components.LiveStreamSurface
+import com.sentinel.app.ui.components.FastenerDots
 import com.sentinel.app.ui.components.TacticalBadge
+import com.sentinel.app.ui.components.TacticalFramePanel
 import com.sentinel.app.ui.components.TacticalOnlineBar
 import com.sentinel.app.ui.components.PrimaryButton
 import com.sentinel.app.ui.theme.BackgroundDeep
@@ -78,7 +80,6 @@ import com.sentinel.app.ui.theme.ErrorDim
 import com.sentinel.app.ui.theme.ErrorRed
 import com.sentinel.app.ui.theme.GreenOnline
 import com.sentinel.app.ui.theme.OrangePrimary
-import com.sentinel.app.ui.theme.OrangeSubtle
 import com.sentinel.app.ui.theme.SurfaceBase
 import com.sentinel.app.ui.theme.SurfaceElevated
 import com.sentinel.app.ui.theme.SurfaceHighest
@@ -116,7 +117,7 @@ fun MultiViewScreen(
             Icon(Icons.Default.Security, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "TACTICAL_GRID",
+                    "TACTICAL_GRID_v4.2",
                     fontSize   = 20.sp,
                     fontWeight = FontWeight.Black,
                     fontStyle  = FontStyle.Italic,
@@ -176,7 +177,7 @@ fun MultiViewScreen(
                     .clickable(onClick = viewModel::refreshAll)
                     .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
-                Text("RECONNECT", fontSize = 10.sp, fontWeight = FontWeight.Black,
+                Text("DEPLOY", fontSize = 10.sp, fontWeight = FontWeight.Black,
                     fontStyle = FontStyle.Italic, color = Color(0xFF111111), letterSpacing = 0.5.sp)
             }
         }
@@ -373,12 +374,7 @@ private fun TacticalFeedTile(
             .clickable(onClick = onTap)
     ) {
         // Corner fastener dots (decorative — 4 corners)
-        listOf(Alignment.TopStart, Alignment.TopEnd, Alignment.BottomStart, Alignment.BottomEnd)
-            .forEach { alignment ->
-                Box(modifier = Modifier.size(4.dp).align(alignment)
-                    .padding(2.dp)
-                    .background(if (isOffline) ErrorDim else SurfaceStroke))
-            }
+        FastenerDots(color = if (isOffline) ErrorDim else SurfaceStroke)
 
         if (isOffline) {
             // SIGNAL_LOST state
@@ -438,6 +434,14 @@ private fun TacticalFeedTile(
                 TacticalBadge(it, GreenOnline, filled = true,
                     modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
             }
+            if (playerState is PlayerState.Playing) {
+                TacticalBadge(
+                    text = "LIVE",
+                    color = ErrorRed,
+                    filled = true,
+                    modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
+                )
+            }
         }
 
         // Bottom info bar — always present
@@ -490,15 +494,11 @@ private fun HudModule(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .background(SurfaceBase)
-            .drawBehind {
-                drawRect(borderColor,
-                    topLeft = Offset(0f, 0f),
-                    size    = androidx.compose.ui.geometry.Size(6.dp.toPx(), size.height))
-            }
-            .padding(start = 14.dp, end = 12.dp, top = 14.dp, bottom = 14.dp)
+    TacticalFramePanel(
+        modifier = modifier,
+        leftAccent = borderColor,
+        fill = if (borderColor == GreenOnline) SurfaceElevated else SurfaceBase,
+        contentPadding = 14.dp
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(title, fontSize = 9.sp, fontWeight = FontWeight.Black,

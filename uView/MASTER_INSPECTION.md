@@ -72,10 +72,12 @@ is compromised.
 ### Recording & Snapshots
 
 The application can record local copies of streams and capture
-snapshots. Recordings run through a `RecordingController` which uses
-`MediaMuxer` to write MP4 files. Snapshots are saved as JPEGs in the
-external files directory and displayed in a dedicated gallery. A
-`StorageManager` monitors space and prunes old files.
+snapshots. Recordings run through a `RecordingController` with explicit
+capability boundaries: MJPEG-backed sessions are written as multipart
+MJPEG (`.mjpeg`) with metadata sidecars, while ExoPlayer-backed streams
+remain unsupported for recording in this build. Snapshots are saved as
+JPEGs in the external files directory and displayed in a dedicated
+gallery. A `StorageManager` monitors space and prunes old files.
 
 ### Background Services
 
@@ -131,6 +133,18 @@ future development must adhere to the following rules:
 
 Deviations from these guidelines should undergo a design review to
 ensure a consistent user experience.
+
+
+## Contributor Truth Guardrails
+
+Contributors must preserve truthful user behavior and handoff claims:
+
+1. **No clickable no-op settings rows.** If a settings action is not wired,
+   disable it as non-clickable unavailable state or hide it until complete.
+2. **No overstated recording capabilities.** Do not imply ExoPlayer/RTSP
+   recording is supported when only MJPEG-backed recording is implemented.
+3. **No build-ready claims without receipts.** Build verification statements
+   must include exact commands, exit codes, and environment blockers.
 
 ## Build Integrity Amendment
 

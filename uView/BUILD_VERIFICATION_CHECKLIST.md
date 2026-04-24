@@ -1,79 +1,113 @@
 # Build Verification Checklist
 
-Use this checklist after extracting the archive or before handing the project to another contributor.
+This checklist is mandatory for contributor handoff. Do **not** claim build readiness without command receipts.
 
-## Open
+## 1) Environment prerequisites (must be explicit)
 
-1. Open Android Studio.
-2. Select **File > Open**.
-3. Choose the Android project directory: `uView`.
-4. Wait for Gradle sync to complete.
-5. Confirm Android Studio detects `settings.gradle.kts`, module `:app`, and the Gradle wrapper.
+Required before compile tasks:
 
-## Command-Line Build
+- JDK 17+ (project currently runs with JDK 21 in local receipt below).
+- Android SDK installed and reachable through **one** of:
+  - `local.properties` with `sdk.dir=/absolute/path/to/Android/Sdk`
+  - `ANDROID_HOME`
+  - `ANDROID_SDK_ROOT`
+- Android platform packages required by app module (compileSdk 35 stack).
 
-From the Android project directory:
+If SDK is missing, mark build status as **environment-blocked**, not app-code-failed.
 
-```powershell
-cd uView
-.\gradlew.bat --version
-.\gradlew.bat tasks
-.\gradlew.bat :app:assembleDebug
+## 2) Required wrapper/package files
+
+Run from `uView/`:
+
+```bash
+ls -l gradlew gradlew.bat \
+      gradle/wrapper/gradle-wrapper.properties \
+      gradle/wrapper/gradle-wrapper.jar \
+      settings.gradle.kts build.gradle.kts \
+      app/build.gradle.kts gradle/libs.versions.toml
 ```
 
-Expected result:
+Pass condition: all files present, readable, non-zero size.
 
-- Gradle downloads `gradle-8.6-bin.zip` through `gradle/wrapper/gradle-wrapper.properties`.
-- The project resolves plugins from `gradle/libs.versions.toml`.
-- `:app:assembleDebug` creates `app/build/outputs/apk/debug/app-debug.apk`.
+## 3) Baseline Gradle integrity checks
 
-## Install And Run
+Run from `uView/`:
 
-With an emulator or Android device connected:
-
-```powershell
-cd uView
-.\gradlew.bat :app:installDebug
-adb shell monkey -p com.sentinel.app.debug 1
+```bash
+bash ./gradlew --version
+bash ./gradlew :app:tasks --all
 ```
 
-Expected result:
+Pass condition: wrapper starts and task graph is listed.
 
-- The debug package installs as `com.sentinel.app.debug`.
-- The launcher uses the packaged adaptive icon.
-- The app opens to the Sentinel Home tactical HUD interface.
-- The dashboard, camera list, multi-view grid, and camera detail screens preserve the visual authority of `uview_screen1.html`, `uview_screen2.html`, and `uview_screen3.html`.
+## 4) Build verification commands
 
-## Manifest And Packaging Checks
+Run from `uView/`:
 
-Before publishing or handing off:
-
-1. Confirm `app/src/main/AndroidManifest.xml` declares `SentinelApplication`, `MainActivity`, `CameraMonitorService`, `BootReceiver`, and the non-exported `FileProvider`.
-2. Confirm launcher icons exist at `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` and `app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`.
-3. Confirm `app/src/main/res/xml/backup_rules.xml`, `data_extraction_rules.xml`, and `file_paths.xml` are present.
-4. Confirm the Gradle wrapper files are present: `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.properties`, and `gradle/wrapper/gradle-wrapper.jar`.
-5. Do not modify Compose UI screens while performing build-only repairs unless a feature requirement explicitly authorizes it.
-
-## Clean Verification
-
-Run this from the Android project directory before creating a release archive:
-
-```powershell
-.\gradlew.bat clean :app:assembleDebug
+```bash
+bash ./gradlew :app:assembleDebug
+bash ./gradlew :app:testDebugUnitTest
+bash ./gradlew :app:lintDebug
 ```
 
-If this command fails, the archive is not contributor-ready.
+If command fails, classify failure:
 
-## Latest Local Verification
+- **Environment failure**: missing SDK/JDK, unavailable emulator/device, missing `local.properties`.
+- **App-code failure**: Kotlin/Java compile error, manifest merge/resource failure, test failure, lint regression.
 
-Attempted on 2026-04-23:
+## 5) Manifest/resource integrity checks
 
-```powershell
-.\gradlew.bat --version
-.\gradlew.bat :app:assembleDebug
+From repository root:
+
+```bash
+rg -n "android:icon|android:roundIcon|MainActivity|CameraMonitorService|BootReceiver|FileProvider" \
+  uView/app/src/main/AndroidManifest.xml
 ```
 
-Observed result:
+Additionally confirm adaptive icon resource files exist:
 
-- `.\gradlew.bat --version` succeeded with Gradle 8.6 on JDK 21.
-- `.\gradlew.bat :app:assembleDebug` did not reach Kotlin/Java compilation because this workstation has no Android SDK configured. Set `ANDROID_HOME`, `ANDROID_SDK_ROOT`, or create `local.properties` with a valid `sdk.dir` before rerunning.
+- `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`
+- `app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`
+- `app/src/main/res/drawable/ic_launcher_foreground.xml`
+
+## 6) Settings truthfulness checks (mandatory)
+
+Manual validation on device/emulator:
+
+- No clickable no-op rows in Settings.
+- Any unwired settings row must be visibly unavailable/locked and non-clickable.
+- Privacy & Permissions must not navigate to a placeholder destination.
+
+## 7) Capability boundary checks (mandatory)
+
+- Do not claim ExoPlayer/RTSP recording support unless fully implemented end-to-end.
+- Current truthful boundary: MJPEG-backed recording available, ExoPlayer-backed recording unavailable.
+
+## 8) Latest local verification receipt (2026-04-23 UTC)
+
+Environment observed:
+
+- OS: Linux
+- JVM: 21.0.2
+- Gradle wrapper: 8.6
+- Android SDK: **not configured** in this container
+
+Commands and outcomes:
+
+```bash
+bash ./gradlew --version
+# PASS: Gradle 8.6, JVM 21.0.2
+
+bash ./gradlew :app:tasks --all
+# PASS: BUILD SUCCESSFUL, app tasks listed
+
+bash ./gradlew :app:assembleDebug
+# BLOCKED (environment): SDK location not found
+# "Define a valid SDK location ... local.properties"
+```
+
+Conclusion:
+
+- Wrapper + project wiring are verified.
+- APK assembly was **not** proven in this environment due to missing Android SDK path.
+- Do not mark this handoff as fully build-verified until `:app:assembleDebug` passes with SDK configured.

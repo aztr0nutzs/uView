@@ -76,6 +76,7 @@ import com.sentinel.app.ui.components.CornerBrackets
 import com.sentinel.app.ui.components.EventRow
 import com.sentinel.app.ui.components.LiveStreamSurface
 import com.sentinel.app.ui.components.PrimaryButton
+import com.sentinel.app.ui.components.TacticalFramePanel
 import com.sentinel.app.ui.theme.BackgroundDeep
 import com.sentinel.app.ui.theme.CyanTertiaryDim
 import com.sentinel.app.ui.theme.ErrorContainer
@@ -83,6 +84,7 @@ import com.sentinel.app.ui.theme.ErrorRed
 import com.sentinel.app.ui.theme.GreenOnline
 import com.sentinel.app.ui.theme.OrangeGlow
 import com.sentinel.app.ui.theme.OrangePrimary
+import com.sentinel.app.ui.theme.OrangeSoft
 import com.sentinel.app.ui.theme.SurfaceBase
 import com.sentinel.app.ui.theme.SurfaceHighest
 import com.sentinel.app.ui.theme.SurfaceLowest
@@ -319,7 +321,7 @@ private fun DetailTopNav(
         }
         HudText(
             text = title,
-            fontSize = 18,
+            fontSize = 20,
             color = OrangePrimary,
             weight = FontWeight.Black,
             modifier = Modifier.weight(1f)
@@ -388,7 +390,7 @@ private fun LiveFeedShell(
         ) {
             FeedStatusSlab(
                 text = "LIVE FEED // ${camera.preferredQuality.label.hudToken()}",
-                color = GreenOnline
+                color = OrangeSoft
             )
             FeedStatusSlab(
                 text = if (camera.connectionProfile.useTls) "TLS ENCRYPTED" else "ENCRYPTION UNAVAILABLE",
@@ -428,7 +430,7 @@ private fun FeedIdentityOverlay(camera: CameraDevice, modifier: Modifier = Modif
             HudText("CAM_ID", 9, OrangePrimary, FontWeight.Black)
             HudText(
                 text = "${camera.name} - ${camera.room}".uppercase(Locale.getDefault()),
-                fontSize = 16,
+                fontSize = 18,
                 color = TextPrimary,
                 weight = FontWeight.Bold,
                 maxLines = 1
@@ -658,7 +660,7 @@ private fun DetailTabRail(selectedTab: DetailTab, onSelect: (DetailTab) -> Unit)
                     size = Size(size.width, 4.dp.toPx())
                 )
             },
-        horizontalArrangement = Arrangement.spacedBy(26.dp)
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         DetailTab.values().forEach { tab ->
             val selected = tab == selectedTab
@@ -680,7 +682,7 @@ private fun DetailTabRail(selectedTab: DetailTab, onSelect: (DetailTab) -> Unit)
                             )
                         }
                     }
-                    .padding(bottom = 13.dp)
+                    .padding(bottom = 11.dp)
             ) {
                 HudText(
                     text = tab.label.uppercase(),
@@ -766,21 +768,13 @@ private fun DetailPanel(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(SurfaceBase)
-            .drawBehind {
-                drawRect(borderColor, size = Size(4.dp.toPx(), size.height))
-                val dotSize = 5.dp.toPx()
-                drawRect(SurfaceStroke, topLeft = Offset(2.dp.toPx(), 2.dp.toPx()), size = Size(dotSize, dotSize))
-                drawRect(SurfaceStroke, topLeft = Offset(size.width - dotSize - 2.dp.toPx(), 2.dp.toPx()), size = Size(dotSize, dotSize))
-                drawRect(SurfaceStroke, topLeft = Offset(2.dp.toPx(), size.height - dotSize - 2.dp.toPx()), size = Size(dotSize, dotSize))
-                drawRect(SurfaceStroke, topLeft = Offset(size.width - dotSize - 2.dp.toPx(), size.height - dotSize - 2.dp.toPx()), size = Size(dotSize, dotSize))
-            }
-            .padding(start = 18.dp, end = 14.dp, top = 18.dp, bottom = 14.dp)
+    TacticalFramePanel(
+        modifier = modifier.fillMaxWidth(),
+        leftAccent = borderColor,
+        fill = SurfaceBase,
+        contentPadding = 0.dp
     ) {
-        Column {
+        Column(modifier = Modifier.padding(start = 18.dp, end = 14.dp, top = 18.dp, bottom = 14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
