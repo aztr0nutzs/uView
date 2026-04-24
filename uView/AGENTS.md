@@ -47,10 +47,11 @@ the codebase, extend its functionality and debug issues efficiently.
 
 * **Class:** `RecordingControllerImpl` (package
   `com.sentinel.app.data.recording`)
-* **Purpose:** Handles local recording of camera streams. Starts and stops
-  recordings, writes video using `MediaMuxer`/`MediaRecorder` and manages
-  a `MutableStateFlow` of `ActiveRecording` sessions. Prunes old
-  recordings when storage falls below a threshold.
+* **Purpose:** Handles local recording with truthful capability boundaries.
+  Current implementation records MJPEG-backed sessions to multipart MJPEG
+  (`.mjpeg`) plus metadata sidecar files. ExoPlayer-backed stream recording
+  is explicitly unsupported until a real encoded-sample pipeline exists.
+  Prunes old recordings when storage falls below a threshold.
 
 ### Snapshot Controller
 

@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
@@ -34,8 +33,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.WifiOff
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,7 +59,6 @@ import com.sentinel.app.ui.components.SettingsToggleRow
 import com.sentinel.app.ui.theme.BackgroundDeep
 import com.sentinel.app.ui.theme.CyanSubtle
 import com.sentinel.app.ui.theme.SentinelTheme
-import com.sentinel.app.ui.theme.SurfaceStroke
 import com.sentinel.app.ui.theme.TextDisabled
 import com.sentinel.app.ui.theme.TextPrimary
 import com.sentinel.app.ui.theme.TextSecondary
@@ -72,7 +68,6 @@ import com.sentinel.app.ui.theme.WarningAmber
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateDiagnostics: () -> Unit,
-    onNavigatePrivacy: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -92,7 +87,6 @@ fun SettingsScreen(
         settings              = settings,
         onNavigateBack        = onNavigateBack,
         onNavigateDiagnostics = onNavigateDiagnostics,
-        onNavigatePrivacy     = onNavigatePrivacy,
         onSetDarkTheme        = viewModel::setDarkTheme,
         onSetAutoReconnect    = viewModel::setAutoReconnect,
         onSetNotifications    = viewModel::setNotifications,
@@ -114,7 +108,6 @@ private fun SettingsContent(
     settings: AppPreferences,
     onNavigateBack: () -> Unit,
     onNavigateDiagnostics: () -> Unit,
-    onNavigatePrivacy: () -> Unit,
     onSetDarkTheme: (Boolean) -> Unit,
     onSetAutoReconnect: (Boolean) -> Unit,
     onSetNotifications: (Boolean) -> Unit,
@@ -276,11 +269,12 @@ private fun SettingsContent(
                         iconBg = WarningAmber.copy(alpha = 0.12f)
                     )
                     SettingsDivider()
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.PrivacyTip,
                         title = "Privacy & Permissions",
-                        subtitle = "Review app permissions and data usage",
-                        onClick = onNavigatePrivacy,
+                        subtitle = "Permission center is not implemented in this build",
+                        valueLabel = "PENDING",
+                        availability = "UNAVAILABLE",
                         iconTint = WarningAmber,
                         iconBg = WarningAmber.copy(alpha = 0.12f)
                     )
@@ -344,11 +338,12 @@ private fun SettingsContent(
                         availability = null
                     )
                     SettingsDivider()
-                    SettingsNavRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.Security,
                         title = "Privacy Statement",
                         subtitle = "This app monitors only user-added cameras on your network",
-                        onClick = onNavigatePrivacy,
+                        valueLabel = "LOCAL",
+                        availability = null,
                         iconTint = com.sentinel.app.ui.theme.StatusOnline,
                         iconBg = com.sentinel.app.ui.theme.StatusOnline.copy(alpha = 0.12f)
                     )
@@ -366,7 +361,9 @@ private fun SettingsInfoRow(
     title: String,
     subtitle: String,
     valueLabel: String? = null,
-    availability: String? = null
+    availability: String? = null,
+    iconTint: androidx.compose.ui.graphics.Color = TextDisabled,
+    iconBg: androidx.compose.ui.graphics.Color = CyanSubtle.copy(alpha = 0.55f)
 ) {
     Row(
         modifier = Modifier
@@ -377,13 +374,13 @@ private fun SettingsInfoRow(
         Box(
             modifier = Modifier
                 .size(38.dp)
-                .background(CyanSubtle.copy(alpha = 0.55f), RoundedCornerShape(10.dp)),
+                .background(iconBg, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TextDisabled
+                tint = iconTint
             )
         }
         Spacer(Modifier.width(14.dp))
@@ -424,7 +421,7 @@ private fun SettingsPreview() {
     SentinelTheme {
         SettingsContent(
             settings = AppPreferences(),
-            onNavigateBack = {}, onNavigateDiagnostics = {}, onNavigatePrivacy = {},
+            onNavigateBack = {}, onNavigateDiagnostics = {},
             onSetDarkTheme = {}, onSetAutoReconnect = {}, onSetNotifications = {},
             onSetLocalOnly = {}, onSetDataSaver = {}, onSetDiagnosticsLogging = {},
             onSetNetworkScan = {}, onSetAppLock = {}
