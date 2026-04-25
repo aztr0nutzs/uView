@@ -21,20 +21,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.sentinel.companion.ui.screens.alerts.AlertsScreen
 import com.sentinel.companion.ui.screens.cameras.CamerasScreen
 import com.sentinel.companion.ui.screens.connect.ConnectScreen
 import com.sentinel.companion.ui.screens.dashboard.DashboardScreen
+import com.sentinel.companion.ui.screens.devicesettings.DeviceSettingsScreen
+import com.sentinel.companion.ui.screens.devicelist.DeviceListScreen
 import com.sentinel.companion.ui.screens.settings.SettingsScreen
+import com.sentinel.companion.ui.screens.setup.SetupWizardScreen
+import com.sentinel.companion.ui.screens.stream.StreamViewerActivity
 import com.sentinel.companion.ui.theme.BackgroundDeep
 import com.sentinel.companion.ui.theme.ErrorRed
 import com.sentinel.companion.ui.theme.OrangePrimary
@@ -46,11 +54,16 @@ import com.sentinel.companion.ui.theme.TextSecondary
 
 // ─── Route constants ──────────────────────────────────────────────────────────
 object Routes {
-    const val CONNECT   = "connect"
-    const val DASHBOARD = "dashboard"
-    const val CAMERAS   = "cameras"
-    const val ALERTS    = "alerts"
-    const val SETTINGS  = "settings"
+    const val CONNECT         = "connect"
+    const val DASHBOARD       = "dashboard"
+    const val CAMERAS         = "cameras"
+    const val DEVICE_LIST     = "device_list"
+    const val ALERTS          = "alerts"
+    const val SETTINGS        = "settings"
+    const val SETUP_WIZARD    = "setup_wizard"
+    const val DEVICE_SETTINGS = "device_settings/{deviceId}"
+
+    fun deviceSettings(deviceId: String) = "device_settings/$deviceId"
 }
 
 // ─── Bottom nav items ─────────────────────────────────────────────────────────
@@ -82,7 +95,7 @@ fun CompanionNavHost(startDestination: String = Routes.CONNECT) {
         composable(Routes.DASHBOARD) {
             MainScaffold(navController = navController) {
                 DashboardScreen(
-                    onNavigateToCameras      = { navController.navigate(Routes.CAMERAS) },
+                    onNavigateToCameras      = { navController.navigate(Routes.DEVICE_LIST) },
                     onNavigateToAlerts       = { navController.navigate(Routes.ALERTS) },
                     onNavigateToCameraDetail = { /* camera detail in same tab */ },
                 )
@@ -93,6 +106,44 @@ fun CompanionNavHost(startDestination: String = Routes.CONNECT) {
             MainScaffold(navController = navController) {
                 CamerasScreen(onCameraDetail = { /* future camera detail */ })
             }
+        }
+
+        composable(Routes.DEVICE_LIST) {
+            val context = LocalContext.current
+            MainScaffold(navController = navController) {
+                DeviceListScreen(
+                    onAddDevice     = { navController.navigate(Routes.SETUP_WIZARD) },
+                    onViewStream    = { deviceId -> StreamViewerActivity.launch(context, deviceId) },
+                    onDeviceSettings = { deviceId -> navController.navigate(Routes.deviceSettings(deviceId)) },
+                )
+            }
+        }
+
+        composable(Routes.SETUP_WIZARD) {
+            SetupWizardScreen(
+                onDeviceSaved = { deviceId ->
+                    navController.navigate(Routes.DEVICE_LIST) {
+                        popUpTo(Routes.SETUP_WIZARD) { inclusive = true }
+                    }
+                },
+                onCancel = { navController.popBackStack() },
+            )
+        }
+
+        composable(
+            route     = Routes.DEVICE_SETTINGS,
+            arguments = listOf(navArgument("deviceId") { type = NavType.StringType }),
+        ) { backStack ->
+            val deviceId = backStack.arguments?.getString("deviceId") ?: return@composable
+            DeviceSettingsScreen(
+                deviceId  = deviceId,
+                onBack    = { navController.popBackStack() },
+                onDeleted = {
+                    navController.navigate(Routes.DEVICE_LIST) {
+                        popUpTo(Routes.DEVICE_LIST) { inclusive = false }
+                    }
+                },
+            )
         }
 
         composable(Routes.ALERTS) {
@@ -125,10 +176,10 @@ private fun MainScaffold(
     val currentDestination = navBackStack?.destination
 
     val navItems = listOf(
-        NavItem(Routes.DASHBOARD, "OVERVIEW",  Icons.Filled.Dashboard),
-        NavItem(Routes.CAMERAS,   "CAMERAS",   Icons.Filled.Videocam),
-        NavItem(Routes.ALERTS,    "ALERTS",    Icons.Filled.Notifications),
-        NavItem(Routes.SETTINGS,  "CONFIG",    Icons.Filled.Settings),
+        NavItem(Routes.DASHBOARD,   "OVERVIEW", Icons.Filled.Dashboard),
+        NavItem(Routes.DEVICE_LIST, "CAMERAS",  Icons.Filled.Videocam),
+        NavItem(Routes.ALERTS,      "ALERTS",   Icons.Filled.Notifications),
+        NavItem(Routes.SETTINGS,    "CONFIG",   Icons.Filled.Settings),
     )
 
     Scaffold(
