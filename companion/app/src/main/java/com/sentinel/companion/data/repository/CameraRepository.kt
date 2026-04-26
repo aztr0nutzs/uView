@@ -1,91 +1,93 @@
 package com.sentinel.companion.data.repository
 
+import com.sentinel.companion.data.db.AlertDao
+import com.sentinel.companion.data.db.CameraDao
 import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.Camera
 import com.sentinel.companion.data.model.CameraStatus
-import com.sentinel.companion.data.model.MockData
 import com.sentinel.companion.data.model.SystemStatus
-import kotlinx.coroutines.delay
+import com.sentinel.companion.data.sync.CompanionSyncService
+import com.sentinel.companion.data.sync.SyncPhase
+import com.sentinel.companion.data.sync.SyncState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Authoritative source of truth (post-mock):
+ *   • cameras  → Room `cameras` table, written by setup wizard + sync service
+ *   • alerts   → Room `alerts` table, written only by [CompanionSyncService] from
+ *                observed camera status transitions (no fixture seeding)
+ *   • status   → derived from cameras + alerts + ConnectionPrefs + SyncState
+ */
 @Singleton
-class CameraRepository @Inject constructor() {
+class CameraRepository @Inject constructor(
+    private val cameraDao: CameraDao,
+    private val alertDao: AlertDao,
+    private val prefsRepo: PreferencesRepository,
+    private val syncService: CompanionSyncService,
+) {
 
-    private val _cameras = MutableStateFlow(MockData.cameras)
-    private val _alerts  = MutableStateFlow(MockData.alerts)
+    val cameras: Flow<List<Camera>> = cameraDao.observeAll()
+    val alerts: Flow<List<Alert>> = alertDao.observeAll()
+    val syncState: StateFlow<SyncState> = syncService.state
 
-    val cameras: Flow<List<Camera>> = _cameras.asStateFlow()
-    val alerts:  Flow<List<Alert>>  = _alerts.asStateFlow()
-
-    val systemStatus: Flow<SystemStatus> = _cameras.map { cams ->
+    val systemStatus: Flow<SystemStatus> = combine(
+        cameras,
+        alertDao.observeUnreadCount(),
+        prefsRepo.connectionPrefs,
+        syncService.state,
+    ) { cams, unread, conn, sync ->
         SystemStatus(
-            isConnected      = true,
-            hostAddress      = "192.168.1.100",
-            totalCameras     = cams.size,
-            onlineCameras    = cams.count { it.statusEnum() == CameraStatus.ONLINE },
-            offlineCameras   = cams.count { it.statusEnum() == CameraStatus.OFFLINE },
-            connectingCameras= cams.count { it.statusEnum() == CameraStatus.CONNECTING },
-            disabledCameras  = cams.count { it.statusEnum() == CameraStatus.DISABLED },
-            unreadAlerts     = _alerts.value.count { !it.isRead },
-            uptimeMs         = 14_400_000L,
-            lastSyncMs       = System.currentTimeMillis(),
+            isConnected       = sync.lastOutcome?.ok == true,
+            hostAddress       = conn.hostAddress,
+            totalCameras      = cams.size,
+            onlineCameras     = cams.count { it.statusEnum() == CameraStatus.ONLINE },
+            offlineCameras    = cams.count { it.statusEnum() == CameraStatus.OFFLINE },
+            connectingCameras = cams.count { it.statusEnum() == CameraStatus.CONNECTING },
+            disabledCameras   = cams.count { it.statusEnum() == CameraStatus.DISABLED },
+            unreadAlerts      = unread,
+            // Uptime is a backend concept we do not yet have a contract for — keep at 0
+            // until the server contract lands; UI renders 0 as "—" instead of faking it.
+            uptimeMs          = 0L,
+            lastSyncMs        = sync.lastOutcome?.finishedAtMs ?: 0L,
         )
     }
 
-    fun getCameraById(id: String): Flow<Camera?> =
-        _cameras.map { list -> list.firstOrNull { it.id == id } }
+    fun getCameraById(id: String): Flow<Camera?> = cameraDao.observeById(id)
 
     fun getAlertsByCameraId(cameraId: String): Flow<List<Alert>> =
-        _alerts.map { list -> list.filter { it.cameraId == cameraId } }
+        alerts.map { list -> list.filter { it.cameraId == cameraId } }
 
     suspend fun toggleFavorite(cameraId: String) {
-        _cameras.value = _cameras.value.map { cam ->
-            if (cam.id == cameraId) cam.copy(isFavorite = !cam.isFavorite) else cam
-        }
+        val current = cameraDao.getById(cameraId) ?: return
+        cameraDao.setFavorite(cameraId, !current.isFavorite)
     }
 
     suspend fun toggleEnabled(cameraId: String) {
-        _cameras.value = _cameras.value.map { cam ->
-            if (cam.id == cameraId) {
-                val nextEnabled = !cam.isEnabled
-                cam.copy(
-                    isEnabled = nextEnabled,
-                    status = if (nextEnabled) CameraStatus.CONNECTING.name else CameraStatus.DISABLED.name,
-                )
-            } else cam
-        }
+        val current = cameraDao.getById(cameraId) ?: return
+        cameraDao.setEnabled(cameraId, !current.isEnabled)
     }
 
+    /** Re-probe a single camera by triggering a full sync pass. */
     suspend fun reconnectCamera(cameraId: String) {
-        _cameras.value = _cameras.value.map { cam ->
-            if (cam.id == cameraId) cam.copy(status = CameraStatus.CONNECTING.name) else cam
-        }
-        delay(1500)
-        _cameras.value = _cameras.value.map { cam ->
-            if (cam.id == cameraId) cam.copy(status = CameraStatus.ONLINE.name, latencyMs = (30..150).random()) else cam
-        }
+        cameraDao.updateStatus(cameraId, CameraStatus.CONNECTING.name, 0, System.currentTimeMillis())
+        syncService.syncOnce()
     }
 
-    suspend fun markAlertRead(alertId: String) {
-        _alerts.value = _alerts.value.map { a ->
-            if (a.id == alertId) a.copy(isRead = true) else a
-        }
+    suspend fun markAlertRead(alertId: String) = alertDao.markRead(alertId)
+    suspend fun markAllAlertsRead() = alertDao.markAllRead()
+
+    suspend fun addCamera(camera: Camera) = cameraDao.upsert(camera)
+    suspend fun deleteCamera(cameraId: String) = cameraDao.deleteById(cameraId)
+
+    /** Manual refresh trigger from the UI. */
+    suspend fun refresh() {
+        syncService.syncOnce()
     }
 
-    suspend fun markAllAlertsRead() {
-        _alerts.value = _alerts.value.map { it.copy(isRead = true) }
-    }
-
-    suspend fun addCamera(camera: Camera) {
-        _cameras.value = _cameras.value + camera
-    }
-
-    suspend fun deleteCamera(cameraId: String) {
-        _cameras.value = _cameras.value.filter { it.id != cameraId }
-    }
+    fun isSyncing(): Boolean = syncState.value.phase == SyncPhase.RUNNING
 }

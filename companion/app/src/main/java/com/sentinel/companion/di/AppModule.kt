@@ -1,10 +1,10 @@
 package com.sentinel.companion.di
 
 import android.content.Context
+import com.sentinel.companion.data.db.AlertDao
 import com.sentinel.companion.data.db.AppDatabase
+import com.sentinel.companion.data.db.CameraDao
 import com.sentinel.companion.data.db.DeviceDao
-import com.sentinel.companion.data.repository.CameraRepository
-import com.sentinel.companion.data.repository.DeviceRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,9 +27,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDeviceRepository(dao: DeviceDao): DeviceRepository = DeviceRepository(dao)
+    fun provideCameraDao(db: AppDatabase): CameraDao = db.cameraDao()
 
     @Provides
     @Singleton
-    fun provideCameraRepository(): CameraRepository = CameraRepository()
+    fun provideAlertDao(db: AppDatabase): AlertDao = db.alertDao()
 }

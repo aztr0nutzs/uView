@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.AlertType
 import com.sentinel.companion.data.repository.CameraRepository
+import com.sentinel.companion.data.sync.SyncPhase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,6 +22,10 @@ data class AlertsUiState(
     val cameraNames: List<String> = emptyList(),
     val unreadCount: Int = 0,
     val isLoading: Boolean = true,
+    val isSyncing: Boolean = false,
+    val isEmpty: Boolean = false,
+    val syncError: String? = null,
+    val lastSyncMs: Long = 0L,
 )
 
 @HiltViewModel
@@ -32,7 +38,9 @@ class AlertsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repo.alerts.collect { alerts ->
+            combine(repo.alerts, repo.syncState) { alerts, sync ->
+                alerts to sync
+            }.collect { (alerts, sync) ->
                 val cameraNames = listOf("ALL") + alerts.map { it.cameraName }.distinct().sorted()
                 val filtered = applyFilter(alerts, _uiState.value.selectedType, _uiState.value.selectedCamera)
                 _uiState.value = _uiState.value.copy(
@@ -41,9 +49,18 @@ class AlertsViewModel @Inject constructor(
                     cameraNames    = cameraNames,
                     unreadCount    = alerts.count { !it.isRead },
                     isLoading      = false,
+                    isSyncing      = sync.phase == SyncPhase.RUNNING,
+                    isEmpty        = alerts.isEmpty(),
+                    syncError      = sync.lastOutcome?.takeIf { !it.ok }?.error,
+                    lastSyncMs     = sync.lastOutcome?.finishedAtMs ?: 0L,
                 )
             }
         }
+        refresh()
+    }
+
+    fun refresh() {
+        viewModelScope.launch { repo.refresh() }
     }
 
     fun onTypeSelected(type: String) {
