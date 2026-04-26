@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -372,7 +374,7 @@ fun CompanionTopBar(
         ) {
             if (onBack != null) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Filled.ArrowBack,
+                    imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back",
                     tint = OrangePrimary,
                     modifier = Modifier
