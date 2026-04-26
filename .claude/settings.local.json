@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/Aztr0nutZs/Documents/uView-3 -type d -name drawable -o -type d -name drawable-*)"
+    ]
+  }
+}

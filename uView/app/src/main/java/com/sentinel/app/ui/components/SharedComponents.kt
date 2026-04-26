@@ -23,6 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -34,10 +39,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sentinel.app.R
 import com.sentinel.app.domain.model.CameraEvent
 import com.sentinel.app.domain.model.CameraEventType
 import com.sentinel.app.domain.model.CameraStatus
@@ -165,7 +173,7 @@ fun SectionCard(
 
 @Composable
 fun SettingsToggleRow(
-    icon: ImageVector,
+    icon: Painter,
     title: String,
     subtitle: String? = null,
     checked: Boolean,
@@ -189,7 +197,7 @@ fun SettingsToggleRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                painter = icon,
                 contentDescription = null,
                 tint = iconTint,
                 modifier = Modifier.size(20.dp)
@@ -230,7 +238,7 @@ fun SettingsToggleRow(
 
 @Composable
 fun SettingsNavRow(
-    icon: ImageVector,
+    icon: Painter,
     title: String,
     subtitle: String? = null,
     valueLabel: String? = null,
@@ -254,7 +262,7 @@ fun SettingsNavRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                painter = icon,
                 contentDescription = null,
                 tint = iconTint,
                 modifier = Modifier.size(20.dp)
@@ -319,7 +327,7 @@ fun EventRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (iconVec, iconColor) = eventIconAndColor(event.eventType)
+    val (iconPainter, iconColor) = eventPainterAndColor(event.eventType)
     val timeStr = formatEventTime(event.timestampMs)
 
     Row(
@@ -338,7 +346,7 @@ fun EventRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = iconVec,
+                painter = iconPainter,
                 contentDescription = null,
                 tint = iconColor,
                 modifier = Modifier.size(22.dp)
@@ -405,18 +413,19 @@ fun EventRow(
     }
 }
 
-private fun eventIconAndColor(type: CameraEventType): Pair<androidx.compose.ui.graphics.vector.ImageVector, Color> {
+@Composable
+private fun eventPainterAndColor(type: CameraEventType): Pair<Painter, Color> {
     return when (type) {
-        CameraEventType.MOTION_DETECTED     -> Icons.Default.DirectionsRun    to WarningAmber
-        CameraEventType.CONNECTION_LOST     -> Icons.Default.WifiOff           to StatusOffline
-        CameraEventType.CONNECTION_RESTORED -> Icons.Default.Wifi              to StatusOnline
-        CameraEventType.RECORDING_STARTED   -> Icons.Default.FiberManualRecord to Color(0xFFFF1744)
-        CameraEventType.RECORDING_STOPPED   -> Icons.Default.Stop              to TextSecondary
-        CameraEventType.SNAPSHOT_TAKEN      -> Icons.Default.CameraAlt         to CyanPrimary
-        CameraEventType.CAMERA_ADDED        -> Icons.Default.AddAPhoto         to StatusOnline
-        CameraEventType.CAMERA_REMOVED      -> Icons.Default.NoPhotography     to TextSecondary
-        CameraEventType.SETTINGS_CHANGED    -> Icons.Default.Settings          to TextSecondary
-        CameraEventType.STREAM_ERROR        -> Icons.Default.ErrorOutline      to StatusOffline
+        CameraEventType.MOTION_DETECTED     -> rememberVectorPainter(Icons.Default.DirectionsRun) to WarningAmber
+        CameraEventType.CONNECTION_LOST     -> rememberVectorPainter(Icons.Default.WifiOff)        to StatusOffline
+        CameraEventType.CONNECTION_RESTORED -> rememberVectorPainter(Icons.Default.Wifi)           to StatusOnline
+        CameraEventType.RECORDING_STARTED   -> painterResource(R.drawable.ic_record)              to Color(0xFFFF1744)
+        CameraEventType.RECORDING_STOPPED   -> rememberVectorPainter(Icons.Default.Stop)           to TextSecondary
+        CameraEventType.SNAPSHOT_TAKEN      -> painterResource(R.drawable.ic_snapshot)            to CyanPrimary
+        CameraEventType.CAMERA_ADDED        -> painterResource(R.drawable.ic_add_cam)             to StatusOnline
+        CameraEventType.CAMERA_REMOVED      -> painterResource(R.drawable.ic_delete_cam)          to TextSecondary
+        CameraEventType.SETTINGS_CHANGED    -> painterResource(R.drawable.ic_settings)            to TextSecondary
+        CameraEventType.STREAM_ERROR        -> rememberVectorPainter(Icons.Default.ErrorOutline)   to StatusOffline
     }
 }
 
