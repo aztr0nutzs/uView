@@ -27,10 +27,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,27 +41,40 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size as GeomSize
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sentinel.app.R
 import com.sentinel.app.domain.model.CameraSourceType
 import com.sentinel.app.domain.model.StreamQualityProfile
+import com.sentinel.app.ui.components.FastenerDots
 import com.sentinel.app.ui.components.GhostButton
 import com.sentinel.app.ui.components.PrimaryButton
+import com.sentinel.app.ui.components.TacticalSectionHeader
 import com.sentinel.app.ui.theme.BackgroundDeep
 import com.sentinel.app.ui.theme.CyanPrimary
 import com.sentinel.app.ui.theme.CyanSubtle
+import com.sentinel.app.ui.theme.CyanTertiaryDim
+import com.sentinel.app.ui.theme.GreenOnline
+import com.sentinel.app.ui.theme.OrangePrimary
 import com.sentinel.app.ui.theme.SentinelTheme
 import com.sentinel.app.ui.theme.StatusOffline
 import com.sentinel.app.ui.theme.StatusOnline
+import com.sentinel.app.ui.theme.SurfaceBase
 import com.sentinel.app.ui.theme.SurfaceElevated
 import com.sentinel.app.ui.theme.SurfaceHighest
+import com.sentinel.app.ui.theme.SurfaceLowest
 import com.sentinel.app.ui.theme.SurfaceStroke
 import com.sentinel.app.ui.theme.TextDisabled
 import com.sentinel.app.ui.theme.TextPrimary
@@ -88,33 +98,16 @@ fun AddCameraScreen(
             .fillMaxSize()
             .background(BackgroundDeep)
     ) {
-        // ── Header ────────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = {
+        // ── Tactical top bar — matches the SENTINEL_HUB family ────────────
+        TacticalWizardTopBar(
+            step = state.step,
+            stepIndex = WizardStep.values().indexOf(state.step),
+            stepCount = WizardStep.values().size,
+            onBack = {
                 if (state.step == WizardStep.SELECT_TYPE) onNavigateBack()
                 else viewModel.prevStep()
-            }) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = TextPrimary)
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = state.step.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Step ${WizardStep.values().indexOf(state.step) + 1} of ${WizardStep.values().size}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-            }
-        }
+        )
 
         // ── Step progress bar — a slim luminous stripe ────────────────────
         LinearProgressIndicator(
@@ -149,55 +142,202 @@ fun AddCameraScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Step 1 — Source Type Grid
+// Tactical top bar — mirrors the SENTINEL_HUB header from the camera list
 // ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun TacticalWizardTopBar(
+    step: WizardStep,
+    stepIndex: Int,
+    stepCount: Int,
+    onBack: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceLowest)
+            .drawBehind {
+                drawRect(
+                    color = SurfaceLowest,
+                    topLeft = Offset(0f, this.size.height - 6.dp.toPx()),
+                    size = GeomSize(this.size.width, 6.dp.toPx())
+                )
+            }
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Bracketed back button
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(SurfaceHighest)
+                .border(2.dp, OrangePrimary.copy(alpha = 0.35f))
+                .clickable(onClick = onBack),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.ArrowBack, "Back", tint = OrangePrimary, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "SENTINEL_HUB // SOURCE_DEPLOY",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic,
+                color = OrangePrimary,
+                letterSpacing = 1.6.sp
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                step.title.uppercase().replace(" ", "_"),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic,
+                color = TextPrimary,
+                letterSpacing = (-0.2).sp
+            )
+        }
+
+        // Step counter chip
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                "PHASE",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                color = CyanTertiaryDim,
+                letterSpacing = 1.5.sp
+            )
+            Text(
+                "%02d/%02d".format(stepIndex + 1, stepCount),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic,
+                color = TextPrimary
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 1 — Source Type Grid (tactical HUD reconstruction)
+// ─────────────────────────────────────────────────────────────────────────────
+
+private data class SourceGroup(
+    val title: String,
+    val codename: String,
+    val accent: Color,
+    val types: List<CameraSourceType>
+)
 
 @Composable
 private fun StepSelectType(state: AddCameraUiState, vm: AddCameraViewModel) {
     val sourceGroups = listOf(
-        "IP / Security Cameras" to listOf(
-            CameraSourceType.RTSP,
-            CameraSourceType.MJPEG,
-            CameraSourceType.ONVIF,
-            CameraSourceType.HLS
+        SourceGroup(
+            title = "IP / SECURITY CAMERAS",
+            codename = "PROTOCOL_CLASS_A",
+            accent = OrangePrimary,
+            types = listOf(
+                CameraSourceType.RTSP,
+                CameraSourceType.MJPEG,
+                CameraSourceType.ONVIF,
+                CameraSourceType.HLS
+            )
         ),
-        "Android Phone as Camera" to listOf(
-            CameraSourceType.ANDROID_IPWEBCAM,
-            CameraSourceType.ANDROID_DROIDCAM,
-            CameraSourceType.ANDROID_ALFRED,
-            CameraSourceType.ANDROID_CUSTOM
+        SourceGroup(
+            title = "ANDROID PHONE AS CAMERA",
+            codename = "PROTOCOL_CLASS_B",
+            accent = CyanTertiaryDim,
+            types = listOf(
+                CameraSourceType.ANDROID_IPWEBCAM,
+                CameraSourceType.ANDROID_DROIDCAM,
+                CameraSourceType.ANDROID_ALFRED,
+                CameraSourceType.ANDROID_CUSTOM
+            )
         ),
-        "Other" to listOf(
-            CameraSourceType.GENERIC_URL,
-            CameraSourceType.DEMO
+        SourceGroup(
+            title = "OTHER",
+            codename = "PROTOCOL_CLASS_X",
+            accent = GreenOnline,
+            types = listOf(
+                CameraSourceType.GENERIC_URL,
+                CameraSourceType.DEMO
+            )
         )
     )
 
-    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        sourceGroups.forEach { (groupName, types) ->
+    LazyColumn(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp)
+    ) {
+        // ── Mission strap line ────────────────────────────────────────────
+        item {
+            SelectFeedHeroPanel()
+        }
+
+        sourceGroups.forEachIndexed { gi, group ->
             item {
-                Text(
-                    text = groupName.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
-                    letterSpacing = androidx.compose.ui.unit.TextUnit(1.2f, androidx.compose.ui.unit.TextUnitType.Sp),
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    types.chunked(2).forEach { rowTypes ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            rowTypes.forEach { type ->
-                                SourceTypeCard(
-                                    type = type,
-                                    selected = state.selectedSourceType == type,
-                                    onClick = { vm.selectSourceType(type); vm.nextStep() },
-                                    modifier = Modifier.weight(1f)
-                                )
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TacticalSectionHeader(title = group.title, color = group.accent)
+                        Text(
+                            "[ ${group.codename} ]",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            fontStyle = FontStyle.Italic,
+                            color = group.accent.copy(alpha = 0.7f),
+                            letterSpacing = 1.2.sp
+                        )
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        group.types.chunked(2).forEachIndexed { ri, rowTypes ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                rowTypes.forEachIndexed { ci, type ->
+                                    val slot = "%02d".format(gi * 10 + ri * 2 + ci + 1)
+                                    TacticalSourceTile(
+                                        type = type,
+                                        slot = slot,
+                                        accent = group.accent,
+                                        selected = state.selectedSourceType == type,
+                                        onClick = {
+                                            vm.selectSourceType(type)
+                                            vm.nextStep()
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (rowTypes.size == 1) Spacer(Modifier.weight(1f))
                             }
-                            if (rowTypes.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
                 }
+            }
+        }
+
+        // ── Encrypted footer line — matches screen 1 ──────────────────────
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    repeat(3) {
+                        Box(Modifier.size(6.dp).background(CyanTertiaryDim.copy(alpha = 0.4f)))
+                    }
+                }
+                Text(
+                    "// SELECT FEED PROTOCOL · AES-256-GCM ·",
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = CyanTertiaryDim.copy(alpha = 0.4f),
+                    letterSpacing = 2.sp
+                )
             }
         }
         item { Spacer(Modifier.height(80.dp)) }
@@ -205,40 +345,173 @@ private fun StepSelectType(state: AddCameraUiState, vm: AddCameraViewModel) {
 }
 
 @Composable
-private fun SourceTypeCard(
+private fun SelectFeedHeroPanel() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceBase)
+            .drawBehind {
+                drawRect(
+                    color = OrangePrimary,
+                    topLeft = Offset.Zero,
+                    size = GeomSize(4.dp.toPx(), this.size.height)
+                )
+            }
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    Modifier.size(6.dp).background(GreenOnline)
+                )
+                Text(
+                    "DEPLOYMENT_OPS // NEW_NODE",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = FontStyle.Italic,
+                    color = GreenOnline,
+                    letterSpacing = 1.6.sp
+                )
+            }
+            Text(
+                "SELECT FEED PROTOCOL",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic,
+                color = TextPrimary,
+                letterSpacing = (-0.3).sp
+            )
+            Text(
+                "Choose the source type for the new camera node. Each protocol uses a distinct ingest path.",
+                fontSize = 11.sp,
+                color = TextSecondary,
+                lineHeight = 15.sp
+            )
+        }
+        FastenerDots()
+    }
+}
+
+@Composable
+private fun TacticalSourceTile(
     type: CameraSourceType,
+    slot: String,
+    accent: Color,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val icon = when (type) {
+    val iconRes = when (type) {
         CameraSourceType.ANDROID_DROIDCAM,
         CameraSourceType.ANDROID_ALFRED,
         CameraSourceType.ANDROID_IPWEBCAM,
-        CameraSourceType.ANDROID_CUSTOM -> Icons.Default.PhoneAndroid
-        CameraSourceType.ONVIF          -> Icons.Default.Router
-        else                            -> Icons.Default.Videocam
+        CameraSourceType.ANDROID_CUSTOM -> R.drawable.ic_devices_lite
+        CameraSourceType.ONVIF          -> R.drawable.ic_net_config
+        CameraSourceType.RTSP,
+        CameraSourceType.MJPEG,
+        CameraSourceType.HLS            -> R.drawable.ic_live_view
+        CameraSourceType.GENERIC_URL    -> R.drawable.ic_devices
+        CameraSourceType.DEMO           -> R.drawable.ic_add_cam
     }
 
-    Column(
+    val protocolTag = when (type) {
+        CameraSourceType.RTSP             -> "RTSP/554"
+        CameraSourceType.MJPEG            -> "MJPEG/HTTP"
+        CameraSourceType.ONVIF            -> "ONVIF"
+        CameraSourceType.HLS              -> "HLS/M3U8"
+        CameraSourceType.ANDROID_DROIDCAM -> "DROIDCAM/4747"
+        CameraSourceType.ANDROID_IPWEBCAM -> "IP_WEBCAM/8080"
+        CameraSourceType.ANDROID_ALFRED   -> "ALFRED/CLOUD"
+        CameraSourceType.ANDROID_CUSTOM   -> "PHONE/CUSTOM"
+        CameraSourceType.GENERIC_URL      -> "URL/RAW"
+        CameraSourceType.DEMO             -> "LOCAL/DEMO"
+    }
+
+    val borderColor = if (selected) accent else SurfaceStroke
+    val tintColor   = if (selected) accent else TextSecondary
+    val nameColor   = if (selected) accent else TextPrimary
+
+    Box(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) CyanSubtle else SurfaceElevated)
-            .border(
-                1.5.dp,
-                if (selected) CyanPrimary else SurfaceStroke,
-                RoundedCornerShape(14.dp)
-            )
+            .background(if (selected) SurfaceElevated else SurfaceBase)
+            .border(if (selected) 2.dp else 1.dp, borderColor)
             .clickable(onClick = onClick)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Icon(icon, contentDescription = null,
-            tint = if (selected) CyanPrimary else TextSecondary, modifier = Modifier.size(24.dp))
-        Text(type.displayName, style = MaterialTheme.typography.labelMedium,
-            color = if (selected) CyanPrimary else TextPrimary, fontWeight = FontWeight.SemiBold)
-        Text(type.description, style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary, maxLines = 2)
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Slot badge row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "[ $slot ]",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = FontStyle.Italic,
+                    color = accent.copy(alpha = 0.85f),
+                    letterSpacing = 1.sp
+                )
+                Box(
+                    modifier = Modifier
+                        .background(accent.copy(alpha = if (selected) 0.20f else 0.10f))
+                        .border(1.dp, accent.copy(alpha = 0.5f))
+                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                ) {
+                    Text(
+                        protocolTag,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic,
+                        color = accent,
+                        letterSpacing = 0.6.sp
+                    )
+                }
+            }
+
+            // Chamfer-style icon block
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(SurfaceLowest)
+                    .border(1.5.dp, accent.copy(alpha = if (selected) 0.7f else 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = tintColor,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            // Name + description
+            Text(
+                type.displayName.uppercase().replace(" ", "_"),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic,
+                color = nameColor,
+                letterSpacing = 0.3.sp,
+                maxLines = 2
+            )
+            Text(
+                type.description,
+                fontSize = 10.sp,
+                color = TextSecondary,
+                lineHeight = 13.sp,
+                maxLines = 3
+            )
+
+            // Bottom signal stripe
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (selected) 3.dp else 1.dp)
+                    .background(accent.copy(alpha = if (selected) 0.9f else 0.3f))
+            )
+        }
+        FastenerDots(color = accent.copy(alpha = if (selected) 0.6f else 0.25f))
     }
 }
 
