@@ -28,20 +28,28 @@ import javax.annotation.processing.Generated;
 public final class AppDatabase_Impl extends AppDatabase {
   private volatile DeviceDao _deviceDao;
 
+  private volatile CameraDao _cameraDao;
+
+  private volatile AlertDao _alertDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `devices` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `location` TEXT NOT NULL, `protocol` TEXT NOT NULL, `host` TEXT NOT NULL, `port` INTEGER NOT NULL, `path` TEXT NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `authType` TEXT NOT NULL, `state` TEXT NOT NULL, `latencyMs` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, `isEnabled` INTEGER NOT NULL, `snapshotUrl` TEXT NOT NULL, `lastSeenMs` INTEGER NOT NULL, `addedMs` INTEGER NOT NULL, `discoveredVia` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `cameras` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `room` TEXT NOT NULL, `sourceType` TEXT NOT NULL, `streamUrl` TEXT NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `status` TEXT NOT NULL, `latencyMs` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, `isEnabled` INTEGER NOT NULL, `lastSeenMs` INTEGER NOT NULL, `addedMs` INTEGER NOT NULL, `snapshotPath` TEXT NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `alerts` (`id` TEXT NOT NULL, `cameraId` TEXT NOT NULL, `cameraName` TEXT NOT NULL, `type` TEXT NOT NULL, `message` TEXT NOT NULL, `timestampMs` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd22f74dd0eedfa08ffcd0204b75db8f2')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'af8d7bfe4f3ec29534c28808bf263d5a')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `devices`");
+        db.execSQL("DROP TABLE IF EXISTS `cameras`");
+        db.execSQL("DROP TABLE IF EXISTS `alerts`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -115,9 +123,50 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoDevices + "\n"
                   + " Found:\n" + _existingDevices);
         }
+        final HashMap<String, TableInfo.Column> _columnsCameras = new HashMap<String, TableInfo.Column>(14);
+        _columnsCameras.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("room", new TableInfo.Column("room", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("sourceType", new TableInfo.Column("sourceType", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("streamUrl", new TableInfo.Column("streamUrl", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("username", new TableInfo.Column("username", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("password", new TableInfo.Column("password", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("status", new TableInfo.Column("status", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("latencyMs", new TableInfo.Column("latencyMs", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("isFavorite", new TableInfo.Column("isFavorite", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("isEnabled", new TableInfo.Column("isEnabled", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("lastSeenMs", new TableInfo.Column("lastSeenMs", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("addedMs", new TableInfo.Column("addedMs", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCameras.put("snapshotPath", new TableInfo.Column("snapshotPath", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysCameras = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesCameras = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoCameras = new TableInfo("cameras", _columnsCameras, _foreignKeysCameras, _indicesCameras);
+        final TableInfo _existingCameras = TableInfo.read(db, "cameras");
+        if (!_infoCameras.equals(_existingCameras)) {
+          return new RoomOpenHelper.ValidationResult(false, "cameras(com.sentinel.companion.data.model.Camera).\n"
+                  + " Expected:\n" + _infoCameras + "\n"
+                  + " Found:\n" + _existingCameras);
+        }
+        final HashMap<String, TableInfo.Column> _columnsAlerts = new HashMap<String, TableInfo.Column>(7);
+        _columnsAlerts.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAlerts.put("cameraId", new TableInfo.Column("cameraId", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAlerts.put("cameraName", new TableInfo.Column("cameraName", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAlerts.put("type", new TableInfo.Column("type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAlerts.put("message", new TableInfo.Column("message", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAlerts.put("timestampMs", new TableInfo.Column("timestampMs", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAlerts.put("isRead", new TableInfo.Column("isRead", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysAlerts = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesAlerts = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoAlerts = new TableInfo("alerts", _columnsAlerts, _foreignKeysAlerts, _indicesAlerts);
+        final TableInfo _existingAlerts = TableInfo.read(db, "alerts");
+        if (!_infoAlerts.equals(_existingAlerts)) {
+          return new RoomOpenHelper.ValidationResult(false, "alerts(com.sentinel.companion.data.model.Alert).\n"
+                  + " Expected:\n" + _infoAlerts + "\n"
+                  + " Found:\n" + _existingAlerts);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "d22f74dd0eedfa08ffcd0204b75db8f2", "67d4040a1697944ac92bb28d008bba7e");
+    }, "af8d7bfe4f3ec29534c28808bf263d5a", "19e1aa2b41099a3ab784c0a61aa430f8");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -128,7 +177,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "devices");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "devices","cameras","alerts");
   }
 
   @Override
@@ -138,6 +187,8 @@ public final class AppDatabase_Impl extends AppDatabase {
     try {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `devices`");
+      _db.execSQL("DELETE FROM `cameras`");
+      _db.execSQL("DELETE FROM `alerts`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -153,6 +204,8 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected Map<Class<?>, List<Class<?>>> getRequiredTypeConverters() {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
     _typeConvertersMap.put(DeviceDao.class, DeviceDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(CameraDao.class, CameraDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(AlertDao.class, AlertDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -181,6 +234,34 @@ public final class AppDatabase_Impl extends AppDatabase {
           _deviceDao = new DeviceDao_Impl(this);
         }
         return _deviceDao;
+      }
+    }
+  }
+
+  @Override
+  public CameraDao cameraDao() {
+    if (_cameraDao != null) {
+      return _cameraDao;
+    } else {
+      synchronized(this) {
+        if(_cameraDao == null) {
+          _cameraDao = new CameraDao_Impl(this);
+        }
+        return _cameraDao;
+      }
+    }
+  }
+
+  @Override
+  public AlertDao alertDao() {
+    if (_alertDao != null) {
+      return _alertDao;
+    } else {
+      synchronized(this) {
+        if(_alertDao == null) {
+          _alertDao = new AlertDao_Impl(this);
+        }
+        return _alertDao;
       }
     }
   }
