@@ -1,6 +1,7 @@
 package com.sentinel.companion.ui.screens.setup;
 
 import com.sentinel.companion.data.network.NetworkDiscovery;
+import com.sentinel.companion.data.network.StreamEndpointTester;
 import com.sentinel.companion.data.repository.DeviceRepository;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -28,23 +29,29 @@ public final class SetupViewModel_Factory implements Factory<SetupViewModel> {
 
   private final Provider<DeviceRepository> repoProvider;
 
+  private final Provider<StreamEndpointTester> endpointTesterProvider;
+
   public SetupViewModel_Factory(Provider<NetworkDiscovery> discoveryProvider,
-      Provider<DeviceRepository> repoProvider) {
+      Provider<DeviceRepository> repoProvider,
+      Provider<StreamEndpointTester> endpointTesterProvider) {
     this.discoveryProvider = discoveryProvider;
     this.repoProvider = repoProvider;
+    this.endpointTesterProvider = endpointTesterProvider;
   }
 
   @Override
   public SetupViewModel get() {
-    return newInstance(discoveryProvider.get(), repoProvider.get());
+    return newInstance(discoveryProvider.get(), repoProvider.get(), endpointTesterProvider.get());
   }
 
   public static SetupViewModel_Factory create(Provider<NetworkDiscovery> discoveryProvider,
-      Provider<DeviceRepository> repoProvider) {
-    return new SetupViewModel_Factory(discoveryProvider, repoProvider);
+      Provider<DeviceRepository> repoProvider,
+      Provider<StreamEndpointTester> endpointTesterProvider) {
+    return new SetupViewModel_Factory(discoveryProvider, repoProvider, endpointTesterProvider);
   }
 
-  public static SetupViewModel newInstance(NetworkDiscovery discovery, DeviceRepository repo) {
-    return new SetupViewModel(discovery, repo);
+  public static SetupViewModel newInstance(NetworkDiscovery discovery, DeviceRepository repo,
+      StreamEndpointTester endpointTester) {
+    return new SetupViewModel(discovery, repo, endpointTester);
   }
 }
