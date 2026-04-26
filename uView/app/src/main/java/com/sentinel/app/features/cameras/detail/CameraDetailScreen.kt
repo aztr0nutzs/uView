@@ -32,8 +32,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Sync
@@ -57,6 +60,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import com.sentinel.app.R
@@ -140,8 +144,8 @@ fun CameraDetailScreen(
         )
 
         LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier.weight(1f)
         ) {
             item {
@@ -300,6 +304,7 @@ private fun DetailTopNav(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(64.dp)
             .background(Color(0xE60E0E0E))
             .drawBehind {
                 drawRect(
@@ -313,7 +318,7 @@ private fun DetailTopNav(
                     size = Size(size.width, 3.dp.toPx())
                 )
             }
-            .padding(horizontal = 8.dp, vertical = 10.dp),
+            .padding(horizontal = 8.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
@@ -420,11 +425,11 @@ private fun LiveFeedShell(
 private fun FeedIdentityOverlay(camera: CameraDevice, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .background(SurfaceLowest.copy(alpha = 0.82f))
-            .drawBehind {
-                drawRect(OrangePrimary, size = Size(4.dp.toPx(), size.height))
-            }
-            .padding(start = 12.dp, end = 10.dp, top = 5.dp, bottom = 6.dp)
+                .background(SurfaceLowest.copy(alpha = 0.82f))
+                .drawBehind {
+                    drawRect(OrangePrimary, size = Size(4.dp.toPx(), size.height))
+                }
+            .padding(start = 12.dp, end = 10.dp, top = 6.dp, bottom = 7.dp)
     ) {
         Column {
             HudText("CAM_ID", 9, OrangePrimary, FontWeight.Black)
@@ -608,7 +613,7 @@ private fun TacticalStripButton(action: ActionSpec, modifier: Modifier = Modifie
 
     Column(
         modifier = modifier
-            .height(72.dp)
+            .height(76.dp)
             .background(if (action.active || action.pulse) action.color.copy(alpha = pulseAlpha) else SurfaceBase)
             .drawBehind {
                 drawRect(

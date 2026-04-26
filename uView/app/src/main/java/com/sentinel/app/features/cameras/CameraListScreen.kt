@@ -57,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontStyle
@@ -114,13 +115,16 @@ fun CameraListScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(80.dp)
                 .background(Color(0xE6111111))  // zinc-900/90
-                .border(
-                    width = 6.dp,
-                    color = SurfaceLowest,
-                    shape = RoundedCornerShape(0.dp)
-                )
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .drawBehind {
+                    drawRect(
+                        color = SurfaceLowest,
+                        topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 6.dp.toPx()),
+                        size = androidx.compose.ui.geometry.Size(size.width, 6.dp.toPx())
+                    )
+                }
+                .padding(horizontal = 20.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Logo + title
@@ -135,17 +139,18 @@ fun CameraListScreen(
             }
             Spacer(Modifier.width(12.dp))
             Text(
-                "SENTINEL_HUB",
-                fontSize   = 20.sp,
+                "TACTICAL_HUB_v4.2",
+                fontSize   = 21.sp,
                 fontWeight = FontWeight.Black,
                 fontStyle  = FontStyle.Italic,
                 color      = OrangePrimary,
-                letterSpacing = (-0.5).sp
+                letterSpacing = 0.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f)
             )
-            Spacer(Modifier.weight(1f))
 
             // Real uptime display
-            Column(horizontalAlignment = Alignment.End) {
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(end = 10.dp)) {
                 Text(
                     "SYSTEM_UPTIME",
                     fontSize = 8.sp,
@@ -163,7 +168,6 @@ fun CameraListScreen(
                     color      = TextPrimary
                 )
             }
-            Spacer(Modifier.width(12.dp))
             Icon(Icons.Default.BatteryChargingFull, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = onNavigateAddCamera, modifier = Modifier.size(36.dp)) {
@@ -234,7 +238,7 @@ fun CameraListScreen(
             // ── Room filter chips ─────────────────────────────────────────
             item {
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.padding(bottom = 28.dp)
                 ) {
                     item {
@@ -321,7 +325,7 @@ private fun TacticalCameraRow(
             .clickable(enabled = !isOffline, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Chamfer thumbnail
         ChamferThumbnail(
@@ -462,7 +466,7 @@ private fun TacticalChip(label: String, selected: Boolean, onClick: () -> Unit) 
             .background(if (selected) OrangePrimary else SurfaceElevated)
             .border(1.dp, if (selected) Color.Transparent else CyanTertiaryDim.copy(alpha = 0.2f))
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(horizontal = 22.dp, vertical = 8.dp)
     ) {
         Text(
             label,

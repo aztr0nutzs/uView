@@ -6,6 +6,11 @@ package com.sentinel.app.features.multiview
 // Deviations require SCREEN_AUTHORITY_MAP.md review.
 
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,9 +42,9 @@ import androidx.compose.material.icons.filled.CropSquare
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.SignalDisconnected
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +65,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -105,12 +111,13 @@ fun MultiViewScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(84.dp)
                 .background(Color(0xE8111111))
                 .drawBehind {
                     drawRect(Color(0xFF0A0A0A), topLeft = Offset(0f, size.height - 4.dp.toPx()),
                         size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx()))
                 }
-                .padding(horizontal = 20.dp, vertical = 14.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -204,9 +211,9 @@ fun MultiViewScreen(
                 } else {
                     val cols = state.gridLayout.columns
                     val rows = (state.cameras.size + cols - 1) / cols
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         (0 until rows).forEach { rowIdx ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 (0 until cols).forEach { colIdx ->
                                     val cameraIdx = rowIdx * cols + colIdx
                                     val camera = state.cameras.getOrNull(cameraIdx)
@@ -247,7 +254,7 @@ fun MultiViewScreen(
                     ) {
                         // ZONE_TELEMETRY
                         HudModule(
-                            title       = "ZONE_TELEMETRY",
+                            title       = "SQUAD_TELEMETRY",
                             borderColor = OrangePrimary,
                             modifier    = Modifier.weight(1f)
                         ) {
@@ -341,7 +348,6 @@ fun MultiViewScreen(
         }
     }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // TacticalFeedTile — matches screen 2 camera tile
 // ─────────────────────────────────────────────────────────────────────────────
@@ -383,8 +389,8 @@ private fun TacticalFeedTile(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(Icons.Default.SignalDisconnected, null, tint = ErrorRed,
-                    modifier = Modifier.size(48.dp))
+                Icon(Icons.Default.WifiOff, null, tint = ErrorRed,
+                    modifier = Modifier.size(56.dp))
                 Spacer(Modifier.height(8.dp))
                 Text("SIGNAL_LOST", fontSize = 18.sp, fontWeight = FontWeight.Black,
                     fontStyle = FontStyle.Italic, color = ErrorDim, letterSpacing = (-0.5).sp)
@@ -393,7 +399,7 @@ private fun TacticalFeedTile(
                     color = ErrorRed.copy(alpha = 0.6f), letterSpacing = 2.sp)
             }
             // CRITICAL_FAILURE badge top-right
-            TacticalBadge("SIGNAL_LOST", ErrorRed, filled = true,
+            TacticalBadge("CRITICAL_FAILURE", ErrorRed, filled = true,
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
         } else {
             // Live stream surface
@@ -427,20 +433,12 @@ private fun TacticalFeedTile(
             // Status badge top-right (motion detection, secure link, etc.)
             val statusBadge = when {
                 playerState is PlayerState.Playing &&
-                camera.healthStatus?.latencyMs != null -> "SECURE_LINK_${camera.id.take(4).uppercase()}"
+                camera.healthStatus?.latencyMs != null -> "SECURE_LINK_ESTABLISHED"
                 else -> null
             }
             statusBadge?.let {
                 TacticalBadge(it, GreenOnline, filled = true,
                     modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
-            }
-            if (playerState is PlayerState.Playing) {
-                TacticalBadge(
-                    text = "LIVE",
-                    color = ErrorRed,
-                    filled = true,
-                    modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
-                )
             }
         }
 
@@ -476,10 +474,13 @@ private fun TacticalFeedTile(
 @Composable
 private fun rememberPulse(): androidx.compose.runtime.State<Float> {
     val t = rememberInfiniteTransition(label = "livePulse")
-    return t.animateFloat(1f, 0.3f,
+    return t.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
         animationSpec = infiniteRepeatable(tween(800),
-            repeatMode = com.sentinel.app.ui.components.RepeatMode.Reverse
-        ), label = "pulseAlpha"
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
     )
 }
 
@@ -535,6 +536,3 @@ private fun formatLogTime(ms: Long): String {
     return "%02d:%02d:%02d".format(actualH, actualM, actualS) + " ago".take(0)
         .let { java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(ms)) }
 }
-
-// Need RepeatMode alias
-private val RepeatMode = androidx.compose.animation.core.RepeatMode

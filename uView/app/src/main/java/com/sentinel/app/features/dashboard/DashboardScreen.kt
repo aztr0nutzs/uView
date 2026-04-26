@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Search
@@ -63,10 +64,10 @@ import com.sentinel.app.ui.components.ChamferThumbnail
 import com.sentinel.app.ui.components.EmptyStateView
 import com.sentinel.app.ui.components.EventRow
 import com.sentinel.app.ui.components.SectionCard
+import com.sentinel.app.ui.components.TacticalFramePanel
 import com.sentinel.app.ui.preview.SampleData
 import com.sentinel.app.ui.theme.BackgroundDeep
 import com.sentinel.app.ui.theme.CyanPrimary
-import com.sentinel.app.ui.theme.CyanSubtle
 import com.sentinel.app.ui.theme.OrangePrimary
 import com.sentinel.app.ui.theme.RecordingRed
 import com.sentinel.app.ui.theme.SentinelTheme
@@ -127,115 +128,157 @@ private fun DashboardContent(
             .forEach { add(it.uppercase().replace(" ", "_")) }
     }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDeep),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .background(BackgroundDeep)
     ) {
-        item {
-            TacticalHubTopBar(unreadEvents = state.recentEvents.count { !it.isRead }, onNavigateEvents, onNavigateSettings)
-        }
-        item {
-            SignalFilterField()
-        }
-        item {
-            RoomChipRow(rooms = feedRooms)
-        }
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(32.dp).height(2.dp).background(OrangePrimary))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "ACTIVE_RECON_FEEDS",
-                    color = OrangePrimary,
-                    fontWeight = FontWeight.Black,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    letterSpacing = (-0.2).sp,
-                    fontSize = 20.sp
-                )
-            }
-        }
+        TacticalHubTopBar(
+            unreadEvents = state.recentEvents.count { !it.isRead },
+            onNotificationsClick = onNavigateEvents,
+            onSettingsClick = onNavigateSettings
+        )
 
-        if (state.pinnedCameras.isNotEmpty()) {
-            items(state.pinnedCameras) { camera ->
-                ReconFeedRow(camera = camera, onOpen = { onNavigateCameraDetail(camera.id) })
-            }
-        } else {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 116.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
             item {
-                SectionCard {
-                    EmptyStateView(
-                        icon = Icons.Default.Timeline,
-                        title = "NO_FEEDS_ACTIVE",
-                        subtitle = "Add and pin cameras to populate tactical recon feed.",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                SignalFilterField()
+                Spacer(Modifier.height(28.dp))
             }
-        }
-
-        if (state.recentEvents.isNotEmpty()) {
+            item {
+                RoomChipRow(rooms = feedRooms)
+                Spacer(Modifier.height(34.dp))
+            }
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .padding(bottom = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Box(Modifier.width(32.dp).height(2.dp).background(OrangePrimary))
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "RECENT EVENTS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        letterSpacing = 1.2.sp
-                    )
-                    Text(
-                        text = "See All",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = CyanPrimary,
-                        modifier = Modifier.clickable(onClick = onNavigateEvents)
+                        text = "ACTIVE_RECON_FEEDS",
+                        color = OrangePrimary,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        letterSpacing = 0.sp,
+                        fontSize = 20.sp
                     )
                 }
-                Spacer(Modifier.height(10.dp))
             }
-            item {
-                SectionCard {
-                    state.recentEvents.forEachIndexed { index, event ->
-                        EventRow(event = event, onClick = onNavigateEvents)
-                        if (index < state.recentEvents.lastIndex) {
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 68.dp)
-                                    .height(1.dp)
-                                    .background(SurfaceStroke)
-                            )
-                        }
+
+            if (state.pinnedCameras.isNotEmpty()) {
+                items(state.pinnedCameras) { camera ->
+                    ReconFeedRow(camera = camera, onOpen = { onNavigateCameraDetail(camera.id) })
+                    Spacer(Modifier.height(4.dp))
+                }
+            } else {
+                item {
+                    TacticalFramePanel(leftAccent = OrangePrimary, contentPadding = 0.dp) {
+                        EmptyStateView(
+                            icon = Icons.Default.Timeline,
+                            title = "NO_FEEDS_ACTIVE",
+                            subtitle = "Add and pin cameras to populate tactical recon feed.",
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
-        } else if (!state.isLoading) {
+
+            item { Spacer(Modifier.height(24.dp)) }
+
+            if (state.recentEvents.isNotEmpty()) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "SYSTEM_LOGS",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = CyanPrimary,
+                            letterSpacing = 1.6.sp,
+                            fontWeight = FontWeight.Black,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                        )
+                        Text(
+                            text = "OPEN_LOG",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = OrangePrimary,
+                            modifier = Modifier.clickable(onClick = onNavigateEvents)
+                        )
+                    }
+                    TacticalFramePanel(leftAccent = CyanPrimary, contentPadding = 0.dp) {
+                        Column(Modifier.padding(start = 4.dp, top = 4.dp, bottom = 8.dp)) {
+                            state.recentEvents.take(3).forEachIndexed { index, event ->
+                                EventRow(event = event, onClick = onNavigateEvents)
+                                if (index < state.recentEvents.take(3).lastIndex) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 68.dp)
+                                            .height(1.dp)
+                                            .background(SurfaceStroke.copy(alpha = 0.45f))
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (!state.isLoading) {
+                item {
+                    TacticalFramePanel(leftAccent = CyanPrimary, contentPadding = 0.dp) {
+                        EmptyStateView(
+                            icon = Icons.Default.Timeline,
+                            title = "NO_EVENTS_LOGGED",
+                            subtitle = "Motion alerts, connection changes, and snapshots will appear here",
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(24.dp)) }
             item {
-                SectionCard(title = "Recent Events") {
-                    EmptyStateView(
-                        icon = Icons.Default.Timeline,
-                        title = "No events yet",
-                        subtitle = "Motion alerts, connection changes, and snapshots will appear here",
-                        modifier = Modifier.fillMaxWidth()
+                QuickActionsRow(
+                    onAddCamera = onNavigateAddCamera,
+                    onScanNetwork = onNavigateDiscovery,
+                    onMultiView = onNavigateMultiView,
+                    onEvents = onNavigateEvents,
+                    onSettings = onNavigateSettings
+                )
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 26.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        repeat(3) {
+                            Box(Modifier.size(7.dp).background(CyanPrimary.copy(alpha = 0.62f)))
+                        }
+                    }
+                    Text(
+                        text = "SECURE DATA STREAM ENCRYPTED: AES-256-GCM",
+                        color = CyanPrimary.copy(alpha = 0.55f),
+                        fontSize = 8.sp,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Black
                     )
                 }
             }
-        }
-
-        item {
-            QuickActionsRow(
-                onAddCamera = onNavigateAddCamera,
-                onScanNetwork = onNavigateDiscovery,
-                onMultiView = onNavigateMultiView,
-                onEvents = onNavigateEvents,
-                onSettings = onNavigateSettings
-            )
         }
     }
 }
@@ -249,15 +292,16 @@ private fun TacticalHubTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(80.dp)
             .background(SurfaceBase.copy(alpha = 0.9f))
             .drawBehind {
                 drawRect(
-                    color = SurfaceLow,
-                    topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 4.dp.toPx()),
-                    size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
+                    color = SurfaceLowest,
+                    topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 6.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width, 6.dp.toPx())
                 )
             }
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -267,18 +311,26 @@ private fun TacticalHubTopBar(
                 .border(2.dp, OrangePrimary.copy(alpha = 0.3f), RoundedCornerShape(2.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Notifications, null, tint = OrangePrimary)
+            Icon(Icons.Default.PersonPin, null, tint = OrangePrimary)
         }
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text("TACTICAL_HUB_v4.2", color = OrangePrimary, fontWeight = FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = (-0.4).sp, fontSize = 24.sp)
-            stateLabel()
+            Text("TACTICAL_HUB_v4.2", color = OrangePrimary, fontWeight = FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = 0.sp, fontSize = 23.sp, maxLines = 1)
         }
-        IconButton(onClick = onNotificationsClick) {
+        Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(end = 12.dp)) {
+            stateLabel()
+            Text(
+                text = "09:42:12:04",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                color = TextPrimary
+            )
+        }
+        IconButton(onClick = onNotificationsClick, modifier = Modifier.size(36.dp)) {
             Icon(if (unreadEvents > 0) Icons.Default.Notifications else Icons.Default.NotificationsNone, null, tint = OrangePrimary)
         }
-        IconButton(onClick = onSettingsClick) {
-            Icon(Icons.Default.BatteryAlert, null, tint = OrangePrimary)
+        IconButton(onClick = onSettingsClick, modifier = Modifier.size(36.dp)) {
+            Icon(Icons.Default.BatteryAlert, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
         }
     }
 }
@@ -290,18 +342,32 @@ private fun TacticalHubTopBar(
 @Composable
 private fun SignalFilterField() {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("SIGNAL_FILTER", color = CyanPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(SurfaceLowest)
-                .height(56.dp)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Search, null, tint = CyanPrimary.copy(alpha = 0.7f))
-            Spacer(Modifier.width(8.dp))
-            Text("QUERY_FEED_IDENTIFIER...", color = TextDisabled, fontSize = 13.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+        Text("SIGNAL_FILTER", color = CyanPrimary, fontSize = 11.sp, fontWeight = FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = 2.sp, modifier = Modifier.padding(start = 4.dp))
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(SurfaceLowest)
+                    .height(56.dp)
+                    .padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Search, null, tint = CyanPrimary.copy(alpha = 0.65f), modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(10.dp))
+                Text("QUERY_FEED_IDENTIFIER...", color = TextDisabled, fontSize = 13.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = 1.sp)
+            }
+            Column(
+                modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                repeat(2) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        repeat(2) {
+                            Box(Modifier.size(3.dp).background(TextPrimary.copy(alpha = 0.2f)))
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -315,7 +381,7 @@ private fun RoomChipRow(rooms: List<String>) {
                 modifier = Modifier
                     .background(if (selected) OrangePrimary else SurfaceElevated, RoundedCornerShape(2.dp))
                     .border(1.dp, if (selected) OrangePrimary else CyanPrimary.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                    .padding(horizontal = 22.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = room,
@@ -323,7 +389,7 @@ private fun RoomChipRow(rooms: List<String>) {
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    letterSpacing = 1.2.sp
+                    letterSpacing = 1.4.sp
                 )
             }
         }
@@ -344,7 +410,7 @@ private fun ReconFeedRow(camera: CameraDevice, onOpen: () -> Unit) {
                 )
             }
             .clickable(onClick = onOpen)
-            .padding(12.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         ChamferThumbnail(status = camera.displayStatus) {
@@ -356,20 +422,34 @@ private fun ReconFeedRow(camera: CameraDevice, onOpen: () -> Unit) {
                 )
             }
         }
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(18.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(camera.name.uppercase(), color = if (camera.isOnline) TextPrimary else TextSecondary, fontWeight = FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+            Text(camera.name.uppercase(), color = if (camera.isOnline) TextPrimary else TextSecondary, fontWeight = FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = 0.sp)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(camera.sourceType.name, color = CyanPrimary, fontSize = 10.sp)
+                Text(camera.sourceType.name, color = CyanPrimary, fontSize = 10.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.width(8.dp))
                 Text("LAT:${camera.healthStatus?.latencyMs ?: "---"}MS", color = TextSecondary, fontSize = 10.sp)
             }
         }
         Column(horizontalAlignment = Alignment.End) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Circle, null, modifier = Modifier.size(8.dp), tint = if (camera.isOnline) StatusOnline else StatusOffline)
-                Spacer(Modifier.width(4.dp))
                 Text(if (camera.isOnline) "ONLINE" else "OFFLINE", color = if (camera.isOnline) StatusOnline else StatusOffline, fontSize = 10.sp, letterSpacing = 1.sp)
+                Spacer(Modifier.width(7.dp))
+                Box(
+                    modifier = Modifier
+                        .width(32.dp)
+                        .height(16.dp)
+                        .background(SurfaceLowest)
+                        .border(1.dp, if (camera.isOnline) StatusOnline.copy(alpha = 0.3f) else StatusOffline.copy(alpha = 0.25f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        Modifier
+                            .width(20.dp)
+                            .height(6.dp)
+                            .background(if (camera.isOnline) StatusOnline else SurfaceHighest)
+                    )
+                }
             }
             Text("UUID:${camera.id.take(8).uppercase()}", fontSize = 9.sp, color = TextDisabled)
         }
@@ -560,28 +640,33 @@ private fun QuickActionButton(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (highlight) CyanSubtle else SurfaceElevated)
+            .background(if (highlight) OrangePrimary else SurfaceBase)
             .border(
                 1.dp,
-                if (highlight) CyanPrimary.copy(alpha = 0.4f) else SurfaceStroke,
-                RoundedCornerShape(14.dp)
+                if (highlight) OrangePrimary else CyanPrimary.copy(alpha = 0.24f)
             )
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
+            .drawBehind {
+                drawRect(
+                    color = if (highlight) SurfaceLowest else SurfaceStroke,
+                    topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 4.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
+                )
+            }
+            .padding(vertical = 13.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = if (highlight) CyanPrimary else TextSecondary,
+            tint = if (highlight) SurfaceLowest else CyanPrimary,
             modifier = Modifier.size(22.dp)
         )
         Text(
-            text = label,
+            text = label.uppercase().replace(" ", "_"),
             style = MaterialTheme.typography.labelSmall,
-            color = if (highlight) CyanPrimary else TextSecondary
+            color = if (highlight) SurfaceLowest else CyanPrimary
         )
     }
 }

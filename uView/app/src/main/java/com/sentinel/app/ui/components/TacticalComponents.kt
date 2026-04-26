@@ -535,6 +535,8 @@ fun TacticalFramePanel(
     modifier: Modifier = Modifier,
     leftAccent: Color = Color.Transparent,
     fill: Color = SurfaceBase,
+    stroke: Color = SurfaceStroke.copy(alpha = 0.65f),
+    bottomEdge: Color = SurfaceLowest,
     contentPadding: Dp = 12.dp,
     content: @Composable () -> Unit
 ) {
@@ -542,6 +544,15 @@ fun TacticalFramePanel(
         modifier = modifier
             .background(fill)
             .drawBehind {
+                drawRect(
+                    color = stroke,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
+                )
+                drawRect(
+                    color = bottomEdge,
+                    topLeft = Offset(0f, size.height - 4.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
+                )
                 if (leftAccent.alpha > 0f) {
                     drawRect(
                         color = leftAccent,
