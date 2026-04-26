@@ -412,20 +412,36 @@ private fun AuthStep(state: SetupUiState, vm: SetupViewModel) {
             )
             state.connectionTestResult?.let { result ->
                 Spacer(Modifier.height(8.dp))
+                val statusColor = when {
+                    state.connectionTestOk           -> GreenOnline
+                    state.connectionTestUnsupported  -> StatusConnecting   // amber: not pass, not fail
+                    state.isTestingConnection        -> CyanTertiaryDim
+                    else                             -> ErrorRed
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     PulseDot(
-                        color   = if (state.connectionTestOk) GreenOnline else ErrorRed,
+                        color   = statusColor,
                         size    = 7.dp,
-                        animate = state.connectionTestOk,
+                        animate = state.connectionTestOk || state.isTestingConnection,
                     )
                     Text(
-                        text     = result,
-                        color    = if (state.connectionTestOk) GreenOnline else ErrorRed,
+                        text     = state.connectionTestPhase?.let { "$it · $result" } ?: result,
+                        color    = statusColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.5.sp,
+                    )
+                }
+                state.connectionTestDetail?.let { detail ->
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text     = "// $detail",
+                        color    = TextSecondary,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
                     )
                 }
             }

@@ -7,7 +7,9 @@ import com.sentinel.companion.data.model.DeviceProfile
 import com.sentinel.companion.data.model.DeviceState
 import com.sentinel.companion.data.model.DiscoveredDevice
 import com.sentinel.companion.data.model.StreamProtocol
+import com.sentinel.companion.data.network.EndpointTestResult
 import com.sentinel.companion.data.network.NetworkDiscovery
+import com.sentinel.companion.data.network.StreamEndpointTester
 import com.sentinel.companion.data.repository.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -40,6 +42,9 @@ data class SetupUiState(
     val isTestingConnection: Boolean = false,
     val connectionTestResult: String? = null,
     val connectionTestOk: Boolean = false,
+    val connectionTestPhase: String? = null,
+    val connectionTestDetail: String? = null,
+    val connectionTestUnsupported: Boolean = false,
     // Step 3 — Confirm
     val isSaving: Boolean = false,
     val saveError: String? = null,
@@ -50,6 +55,7 @@ data class SetupUiState(
 class SetupViewModel @Inject constructor(
     private val discovery: NetworkDiscovery,
     private val repo: DeviceRepository,
+    private val endpointTester: StreamEndpointTester,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SetupUiState())
@@ -140,29 +146,98 @@ class SetupViewModel @Inject constructor(
 
     fun onDeviceNameChanged(v: String)  { _state.value = _state.value.copy(deviceName = v) }
     fun onLocationChanged(v: String)    { _state.value = _state.value.copy(location = v) }
-    fun onProtocolChanged(v: StreamProtocol) { _state.value = _state.value.copy(protocol = v) }
-    fun onPathChanged(v: String)        { _state.value = _state.value.copy(streamPath = v) }
-    fun onUsernameChanged(v: String)    { _state.value = _state.value.copy(username = v) }
-    fun onPasswordChanged(v: String)    { _state.value = _state.value.copy(password = v) }
-    fun onAuthTypeChanged(v: AuthType)  { _state.value = _state.value.copy(authType = v) }
+    fun onProtocolChanged(v: StreamProtocol) { _state.value = _state.value.copy(protocol = v).clearTestResult() }
+    fun onPathChanged(v: String)        { _state.value = _state.value.copy(streamPath = v).clearTestResult() }
+    fun onUsernameChanged(v: String)    { _state.value = _state.value.copy(username = v).clearTestResult() }
+    fun onPasswordChanged(v: String)    { _state.value = _state.value.copy(password = v).clearTestResult() }
+    fun onAuthTypeChanged(v: AuthType)  { _state.value = _state.value.copy(authType = v).clearTestResult() }
+
+    private fun SetupUiState.clearTestResult(): SetupUiState = copy(
+        connectionTestResult      = null,
+        connectionTestPhase       = null,
+        connectionTestDetail      = null,
+        connectionTestOk          = false,
+        connectionTestUnsupported = false,
+    )
 
     fun testConnection() {
-        _state.value = _state.value.copy(
-            isTestingConnection  = true,
-            connectionTestResult = null,
-            connectionTestOk     = false,
+        val s = _state.value
+        val host = s.manualHost.trim()
+        val portInt = s.manualPort.toIntOrNull() ?: s.protocol.defaultPort
+
+        if (host.isBlank()) {
+            _state.value = s.copy(
+                isTestingConnection       = false,
+                connectionTestOk          = false,
+                connectionTestResult      = "TEST_REJECTED",
+                connectionTestPhase       = "INPUT",
+                connectionTestDetail      = "Host address is empty — set HOST/IP in step 1",
+                connectionTestUnsupported = false,
+            )
+            return
+        }
+        if (portInt !in 1..65535) {
+            _state.value = s.copy(
+                isTestingConnection       = false,
+                connectionTestOk          = false,
+                connectionTestResult      = "TEST_REJECTED",
+                connectionTestPhase       = "INPUT",
+                connectionTestDetail      = "Port $portInt out of range (1-65535)",
+                connectionTestUnsupported = false,
+            )
+            return
+        }
+
+        _state.value = s.copy(
+            isTestingConnection       = true,
+            connectionTestResult      = "TESTING…",
+            connectionTestPhase       = "PROBE",
+            connectionTestDetail      = "Probing ${s.protocol.label} at $host:$portInt${s.streamPath.ifBlank { "/" }}",
+            connectionTestOk          = false,
+            connectionTestUnsupported = false,
         )
+
         viewModelScope.launch {
-            kotlinx.coroutines.delay(1800)
-            // In production: open a socket or HEAD request to confirm the stream endpoint
-            val ok = _state.value.manualHost.isNotBlank()
+            val result = endpointTester.test(
+                protocol  = s.protocol,
+                host      = host,
+                port      = portInt,
+                path      = s.streamPath,
+                authType  = s.authType,
+                username  = s.username,
+                password  = s.password,
+            )
+
+            val outcome = when (result) {
+                is EndpointTestResult.Ok                -> TestOutcome("CONNECTION_OK",        "VERIFIED",    true,  false)
+                is EndpointTestResult.AuthFailed        -> TestOutcome("AUTH_FAILED",          "AUTH",        false, false)
+                is EndpointTestResult.BadPath           -> TestOutcome("BAD_PATH",             "PATH",        false, false)
+                is EndpointTestResult.DnsFailed         -> TestOutcome("DNS_FAILED",           "DNS",         false, false)
+                is EndpointTestResult.Timeout           -> TestOutcome("TIMEOUT",              "TIMEOUT",     false, false)
+                is EndpointTestResult.ConnectionRefused -> TestOutcome("CONNECTION_REFUSED",   "TCP",         false, false)
+                is EndpointTestResult.TlsFailed         -> TestOutcome("TLS_FAILED",           "TLS",         false, false)
+                is EndpointTestResult.ProtocolMismatch  -> TestOutcome("PROTOCOL_MISMATCH",    "PROTOCOL",    false, false)
+                is EndpointTestResult.Unsupported       -> TestOutcome("UNSUPPORTED_PROTOCOL", "UNSUPPORTED", false, true)
+                is EndpointTestResult.Internal          -> TestOutcome("TEST_ERROR",           "INTERNAL",    false, false)
+            }
+
             _state.value = _state.value.copy(
-                isTestingConnection  = false,
-                connectionTestOk     = ok,
-                connectionTestResult = if (ok) "CONNECTION_OK // Stream endpoint reachable" else "CONNECTION_FAILED",
+                isTestingConnection       = false,
+                connectionTestOk          = outcome.ok,
+                connectionTestResult      = outcome.label,
+                connectionTestPhase       = outcome.phase,
+                connectionTestDetail      = result.message,
+                connectionTestUnsupported = outcome.unsupported,
             )
         }
     }
+
+    private data class TestOutcome(
+        val label: String,
+        val phase: String,
+        val ok: Boolean,
+        val unsupported: Boolean,
+    )
 
     fun goToConfirm() {
         _state.value = _state.value.copy(step = SetupStep.CONFIRM)
