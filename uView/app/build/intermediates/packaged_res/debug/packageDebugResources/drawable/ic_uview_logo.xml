@@ -1,0 +1,52 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Outer frame -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M3,7 L21,7 L21,17 L3,17 Z"/>
+    <!-- Horizontal crosshair -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M8,12 H16"/>
+    <!-- Vertical crosshair -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M12,9 V15"/>
+    <!-- Corner bracket TL -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M3,10.5 V7 H6.5"/>
+    <!-- Corner bracket TR -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M21,10.5 V7 H17.5"/>
+    <!-- Corner bracket BL -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M3,13.5 V17 H6.5"/>
+    <!-- Corner bracket BR -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M21,13.5 V17 H17.5"/>
+    <!-- Center reticle dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,11 h2 v2 h-2 z"/>
+</vector>

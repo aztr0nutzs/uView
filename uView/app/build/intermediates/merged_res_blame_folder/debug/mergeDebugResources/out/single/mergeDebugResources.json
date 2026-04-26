@@ -1,0 +1,82 @@
+[
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_playback.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_playback.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_alerts.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_alerts.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_net_config.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_net_config.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_record.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_record.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_snapshot.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_snapshot.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_settings.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_settings.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_uview_logo.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_uview_logo.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.sentinel.app-main-72:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_live_view.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_live_view.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_delete_cam.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_delete_cam.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_mic_talk.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_mic_talk.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.sentinel.app-main-72:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_add_cam.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_add_cam.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/xml_data_extraction_rules.xml.flat",
+        "source": "com.sentinel.app-main-72:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_zoom_in_out.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_zoom_in_out.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/xml_file_paths.xml.flat",
+        "source": "com.sentinel.app-main-72:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/xml_backup_rules.xml.flat",
+        "source": "com.sentinel.app-main-72:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_devices.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_devices.xml"
+    },
+    {
+        "merged": "com.sentinel.app-debug-70:/drawable_ic_devices_lite.xml.flat",
+        "source": "com.sentinel.app-main-72:/drawable/ic_devices_lite.xml"
+    }
+]

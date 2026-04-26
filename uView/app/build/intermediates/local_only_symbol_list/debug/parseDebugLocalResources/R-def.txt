@@ -1,0 +1,25 @@
+R_DEF: Internal format may change without notice
+local
+color ic_launcher_background
+drawable ic_add_cam
+drawable ic_alerts
+drawable ic_delete_cam
+drawable ic_devices
+drawable ic_devices_lite
+drawable ic_launcher_foreground
+drawable ic_live_view
+drawable ic_mic_talk
+drawable ic_net_config
+drawable ic_playback
+drawable ic_record
+drawable ic_settings
+drawable ic_snapshot
+drawable ic_uview_logo
+drawable ic_zoom_in_out
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+style Theme.SentinelHome
+xml backup_rules
+xml data_extraction_rules
+xml file_paths
