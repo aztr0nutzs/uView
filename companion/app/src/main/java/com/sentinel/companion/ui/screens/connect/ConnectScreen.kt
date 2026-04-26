@@ -222,9 +222,26 @@ fun ConnectScreen(
                 }
             }
 
-            // Error message
-            if (state.errorMessage != null) {
+            // Live status line — shows DNS / TCP / HTTP progress in real time.
+            if (state.statusLine.isNotBlank()) {
                 Spacer(Modifier.height(12.dp))
+                val statusColor = when (state.phase) {
+                    ConnectPhase.SUCCESS -> GreenOnline
+                    ConnectPhase.FAILED  -> ErrorRed
+                    else                 -> CyanTertiaryDim
+                }
+                Text(
+                    text = "// ${state.statusLine}",
+                    color = statusColor,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.5.sp,
+                )
+            }
+
+            // Error message — exact failure reason, no generic fallback.
+            if (state.errorMessage != null) {
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = "// ${state.errorMessage}",
                     color = ErrorRed,
@@ -236,11 +253,11 @@ fun ConnectScreen(
             Spacer(Modifier.height(24.dp))
 
             // Connect button
-            if (state.isConnecting) {
+            if (state.isBusy) {
                 CircularProgressIndicator(color = OrangePrimary, modifier = Modifier.size(36.dp))
             } else {
                 PrimaryButton(
-                    text = "ESTABLISH_LINK",
+                    text = if (state.phase == ConnectPhase.FAILED) "RETRY_LINK" else "ESTABLISH_LINK",
                     onClick = { viewModel.connect(onConnected) },
                     icon = Icons.Filled.Wifi,
                     modifier = Modifier.fillMaxWidth(),
