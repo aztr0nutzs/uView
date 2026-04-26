@@ -18,7 +18,7 @@ enum class CameraSourceType(val displayName: String, val description: String) {
     ),
     ONVIF(
         displayName = "ONVIF Camera",
-        description = "ONVIF-compatible camera — auto profile discovery (future)"
+        description = "ONVIF device discovery only; profile stream setup is unavailable in this build"
     ),
     HLS(
         displayName = "HLS Stream",
@@ -30,7 +30,7 @@ enum class CameraSourceType(val displayName: String, val description: String) {
     ),
     ANDROID_ALFRED(
         displayName = "Alfred (Android Phone)",
-        description = "Old Android phone using the Alfred home security app"
+        description = "Alfred cloud relay streams are unavailable in this build"
     ),
     ANDROID_IPWEBCAM(
         displayName = "IP Webcam (Android Phone)",
@@ -46,7 +46,7 @@ enum class CameraSourceType(val displayName: String, val description: String) {
     ),
     DEMO(
         displayName = "Demo Camera",
-        description = "Local demo entry for testing and UI development"
+        description = "Internal development source; hidden from ship-build setup"
     )
 }
 
@@ -290,20 +290,6 @@ data class DashboardSummary(
     val storagePercent: Float get() = if (storageCapacityMb == 0L) 0f
     else storageUsedMb.toFloat() / storageCapacityMb.toFloat()
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Discovered Device (from network scan)
-// ─────────────────────────────────────────────────────────────────────────────
-
-data class DiscoveredDevice(
-    val ipAddress: String,
-    val hostname: String?,
-    val port: Int,
-    val probableSourceType: CameraSourceType?,
-    val openPorts: List<Int>,
-    val banner: String?,                // HTTP banner if present
-    val isAlreadyAdded: Boolean = false
-)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Player State Model

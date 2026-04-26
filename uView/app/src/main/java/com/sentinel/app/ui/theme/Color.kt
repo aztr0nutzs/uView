@@ -32,6 +32,7 @@ val CyanTertiaryDim    = Color(0xFF00E1EF)   // cyan stream metrics
 val CyanFixed          = Color(0xFF12F1FF)   // cyan fixed elements
 val CyanAccent         = Color(0xFF00EEFC)   // link/interactive cyan
 val CyanSubtleBg       = Color(0x1A00E1EF)   // cyan tinted surface
+val CyanSubtle         = CyanSubtleBg
 
 // ── Error — Red ──────────────────────────────────────────────────────────────
 val ErrorRed           = Color(0xFFFF7351)   // offline status, errors

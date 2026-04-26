@@ -123,15 +123,15 @@ private fun DiagnosticsContent(
                 SectionCard {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            "Connection Tests",
+                            "TCP Reachability Checks",
                             style = MaterialTheme.typography.titleSmall,
                             color = TextPrimary,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Tests TCP reachability to each camera host. " +
-                            "Stream-level probing (RTSP/MJPEG) requires ExoPlayer wiring — not yet implemented.",
+                            "Opens a TCP socket to each configured host and port. " +
+                            "This does not decode RTSP/MJPEG/HLS streams or validate credentials.",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -141,7 +141,7 @@ private fun DiagnosticsContent(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             PrimaryButton(
-                                text = if (state.isTestingAll) "Testing all…" else "Test All Cameras",
+                                text = if (state.isTestingAll) "Checking TCP..." else "Check All TCP Endpoints",
                                 onClick = onTestAll,
                                 enabled = !state.isTestingAll,
                                 icon = Icons.Default.NetworkCheck,
@@ -153,7 +153,7 @@ private fun DiagnosticsContent(
                             val passed = state.testResults.values.count { it.success }
                             val total  = state.testResults.size
                             Text(
-                                "$passed / $total cameras reachable",
+                                "$passed / $total TCP endpoints reachable",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (passed == total) StatusOnline else WarningAmber
                             )
@@ -228,7 +228,7 @@ private fun CameraDiagnosticCard(
                 IconButton(onClick = onTest, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Default.Refresh,
-                        "Test connection",
+                        "Run TCP check",
                         tint = CyanPrimary,
                         modifier = Modifier.size(18.dp)
                     )
@@ -259,7 +259,7 @@ private fun CameraDiagnosticCard(
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    if (ok) "Reachable" else "Unreachable",
+                    if (ok) "TCP reachable" else "TCP unreachable",
                     style = MaterialTheme.typography.labelMedium,
                     color = if (ok) StatusOnline else StatusOffline,
                     fontWeight = FontWeight.SemiBold
@@ -288,20 +288,20 @@ private fun CameraDiagnosticCard(
             }
             // Stream probe notice
             Row(
-                modifier = Modifier.padding(horizontal = 14.dp, bottom = 10.dp),
+                modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(Icons.Default.HourglassTop, null, tint = TextDisabled, modifier = Modifier.size(12.dp))
                 Text(
-                    "Stream probe: not implemented — requires ExoPlayer",
+                    "Stream decode and credentials: not tested",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextDisabled
                 )
             }
         } else if (!isTesting) {
             Text(
-                "Tap ↻ to test this camera",
+                "Tap refresh to run a TCP host check",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextDisabled,
                 modifier = Modifier.padding(start = 14.dp, bottom = 10.dp)

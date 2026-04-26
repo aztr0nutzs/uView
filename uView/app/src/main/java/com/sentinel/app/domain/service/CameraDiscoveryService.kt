@@ -12,10 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
  * Orchestrates all discovery strategies in parallel:
  *   1. ARP table read       — instant, finds all LAN hosts with MAC addresses
  *   2. mDNS / NSD           — finds devices advertising camera-related services
- *   3. ONVIF WS-Discovery   — UDP multicast, finds ONVIF-capable cameras
+ *   3. ONVIF WS-Discovery   — UDP multicast, identifies ONVIF devices only
  *   4. TCP port probe        — fallback for devices not using any of the above
  *
- * Each strategy emits devices as they are found via [startScan].
+ * Each strategy emits devices as they are found via [startScan]. Discovery
+ * does not configure ONVIF media profiles, decode streams, or validate credentials.
  * The caller receives a hot [Flow<DiscoveredDevice>] — devices arrive
  * as soon as any strategy finds them.
  */

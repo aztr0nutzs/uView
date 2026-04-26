@@ -4,7 +4,6 @@ import com.sentinel.app.domain.model.CameraConnectionProfile
 import com.sentinel.app.domain.model.CameraDevice
 import com.sentinel.app.domain.model.CameraStreamEndpoint
 import com.sentinel.app.domain.model.ConnectionTestResult
-import com.sentinel.app.domain.model.DiscoveredDevice
 import com.sentinel.app.domain.model.PlayerState
 import com.sentinel.app.domain.model.ReconnectPolicy
 import com.sentinel.app.domain.model.SnapshotRequest
@@ -12,34 +11,13 @@ import com.sentinel.app.domain.model.SnapshotResult
 import kotlinx.coroutines.flow.Flow
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CameraDiscoveryService
-// Scans the local network for camera-compatible devices.
-// Implementation NOTE: real ONVIF WS-Discovery and port scanning are scaffolded.
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface CameraDiscoveryService {
-
-    /** Begin a local network scan. Emits discovered devices as found. */
-    fun startScan(): Flow<DiscoveredDevice>
-
-    /** Cancel any in-progress scan. */
-    suspend fun cancelScan()
-
-    /** Whether a scan is currently running. */
-    val isScanning: Flow<Boolean>
-
-    /** Probe a specific IP address for known camera ports. */
-    suspend fun probeDevice(ipAddress: String): DiscoveredDevice?
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // CameraConnectionTester
-// Tests whether a camera endpoint is reachable and streams correctly.
+// Tests whether a camera endpoint is reachable at TCP level.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface CameraConnectionTester {
 
-    /** Full connection test — ping, port check, stream probe. */
+    /** TCP host/port check. Stream decode and credential validation are not performed here. */
     suspend fun testConnection(
         camera: CameraDevice,
         timeoutSeconds: Int = 10
@@ -185,7 +163,7 @@ data class OnvifMediaProfile(
 )
 
 /**
- * Handles Android phone camera sources (DroidCam, IP Webcam, Alfred, custom).
+ * Handles direct-stream Android phone camera sources (DroidCam, IP Webcam, custom URL).
  * NOTE: Each app uses different port/path conventions.
  */
 interface AndroidPhoneSourceAdapter : CameraStreamAdapter {

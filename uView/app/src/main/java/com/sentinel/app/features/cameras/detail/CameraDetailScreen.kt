@@ -259,10 +259,11 @@ fun CameraDetailScreen(
                     item {
                         DetailPanel("CONNECTION_DIAGNOSTIC", OrangePrimary, Modifier.fillMaxWidth()) {
                             MetricRow("TEST_SCOPE", metric("TCP_HOST_REACHABILITY"))
-                            MetricRow("STREAM_VALIDATION", metric("PLAYBACK_ENGINE"))
+                            MetricRow("STREAM_VALIDATION", metric("NOT_TESTED", unavailable = true))
+                            MetricRow("CREDENTIALS", metric("NOT_TESTED", unavailable = true))
                             Spacer(Modifier.height(10.dp))
                             PrimaryButton(
-                                text = if (state.isTestingConnection) "TESTING..." else "RUN_DIAGNOSTIC",
+                                text = if (state.isTestingConnection) "TESTING..." else "RUN_TCP_CHECK",
                                 onClick = viewModel::testConnection,
                                 enabled = !state.isTestingConnection,
                                 icon = Icons.Default.Refresh,
@@ -272,13 +273,13 @@ fun CameraDetailScreen(
                                 Spacer(Modifier.height(10.dp))
                                 MetricRow(
                                     "RESULT",
-                                    metric(if (result.success) "HOST_REACHABLE" else "UNREACHABLE"),
+                                    metric(if (result.success) "TCP_REACHABLE" else "TCP_UNREACHABLE"),
                                     valueColor = if (result.success) GreenOnline else ErrorRed
                                 )
                                 MetricRow("LATENCY_TCP", result.latencyMs?.let { metric("${it}MS") } ?: Unavailable)
                                 MetricRow("CREDENTIALS", result.credentialsAccepted?.let {
                                     metric(if (it) "ACCEPTED" else "REJECTED")
-                                } ?: Unavailable)
+                                } ?: metric("NOT_TESTED", unavailable = true))
                                 result.errorMessage?.let { MetricRow("FAULT", metric(it.hudToken()), valueColor = ErrorRed) }
                                 MetricRow(
                                     "TESTED_AT",

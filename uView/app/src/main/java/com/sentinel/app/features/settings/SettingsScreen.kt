@@ -214,12 +214,12 @@ private fun SettingsContent(
                         onCheckedChange = onSetLocalOnly
                     )
                     SettingsDivider()
-                    SettingsToggleRow(
+                    SettingsInfoRow(
                         icon = Icons.Default.Radar,
                         title = "Network Scan",
-                        subtitle = "Allow LAN scanning for new camera discovery",
-                        checked = settings.networkScanEnabled,
-                        onCheckedChange = onSetNetworkScan
+                        subtitle = "LAN discovery runs only when launched from the scan screen; this preference toggle is not wired",
+                        valueLabel = if (settings.networkScanEnabled) "ON" else "OFF",
+                        availability = "ON_DEMAND_ONLY"
                     )
                     SettingsDivider()
                     SettingsInfoRow(
@@ -321,7 +321,7 @@ private fun SettingsContent(
                     SettingsNavRow(
                         icon = Icons.Default.NetworkCheck,
                         title = "Diagnostics",
-                        subtitle = "Run connection tests and view debug info",
+                        subtitle = "Run TCP reachability checks; stream decode and credentials are not tested",
                         onClick = onNavigateDiagnostics
                     )
                 }

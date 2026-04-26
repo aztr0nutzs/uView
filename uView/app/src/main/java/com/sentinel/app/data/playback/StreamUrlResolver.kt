@@ -21,9 +21,10 @@ import javax.inject.Singleton
  * Routing table:
  *   RTSP                    → RtspCameraAdapterImpl
  *   MJPEG                   → MjpegStreamAdapterImpl
- *   ONVIF                   → OnvifCameraAdapterImpl  (falls back to RTSP guess)
- *   HLS / GENERIC_URL / DEMO → GenericStreamAdapterImpl
- *   ANDROID_*               → AndroidPhoneSourceAdapterImpl
+ *   ONVIF                   → unavailable until profile stream setup is complete
+ *   HLS / GENERIC_URL       → GenericStreamAdapterImpl
+ *   ANDROID_DROIDCAM/IPWEBCAM/CUSTOM → AndroidPhoneSourceAdapterImpl
+ *   ANDROID_ALFRED / DEMO   → unavailable in ship builds
  *
  * Returns null only if the device's source type is completely unresolvable and
  * every adapter fails. Callers must handle null by showing an error state.
@@ -38,6 +39,10 @@ class StreamUrlResolver @Inject constructor(
 ) {
     suspend fun resolve(camera: CameraDevice): CameraStreamEndpoint? {
         Timber.d("Resolving stream for camera=${camera.id} type=${camera.sourceType}")
+        if (isUnsupportedSource(camera)) {
+            Timber.w("Source type ${camera.sourceType} is unavailable for playback in this build")
+            return null
+        }
         return try {
             when (camera.sourceType) {
                 CameraSourceType.RTSP ->
@@ -46,19 +51,19 @@ class StreamUrlResolver @Inject constructor(
                 CameraSourceType.MJPEG ->
                     mjpegAdapter.resolveStreamEndpoint(camera.connectionProfile, camera)
 
-                CameraSourceType.ONVIF ->
-                    onvifAdapter.resolveStreamEndpoint(camera.connectionProfile, camera)
+                CameraSourceType.ONVIF -> null
 
                 CameraSourceType.ANDROID_DROIDCAM,
-                CameraSourceType.ANDROID_ALFRED,
                 CameraSourceType.ANDROID_IPWEBCAM,
                 CameraSourceType.ANDROID_CUSTOM ->
                     phoneAdapter.resolveStreamEndpoint(camera.connectionProfile, camera)
 
                 CameraSourceType.HLS,
-                CameraSourceType.GENERIC_URL,
-                CameraSourceType.DEMO ->
+                CameraSourceType.GENERIC_URL ->
                     genericAdapter.resolveStreamEndpoint(camera.connectionProfile, camera)
+
+                CameraSourceType.ANDROID_ALFRED,
+                CameraSourceType.DEMO -> null
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to resolve stream URL for camera=${camera.id}")
@@ -81,11 +86,11 @@ class StreamUrlResolver @Inject constructor(
             endpoint.sourceType != CameraSourceType.HLS
 
     /**
-     * Whether Alfred-style sources are unsupported in LAN mode.
-     * Surfaced to the UI so we can show an honest error rather than
-     * a silent loading spinner.
+     * Whether a configured source is unavailable in this ship build.
+     * Surfaced to callers so they can show an honest unsupported state.
      */
     fun isUnsupportedSource(camera: CameraDevice): Boolean =
-        camera.sourceType == CameraSourceType.ANDROID_ALFRED &&
-            (camera.androidPhoneConfig?.isLanOnly == true)
+        camera.sourceType == CameraSourceType.ONVIF ||
+            camera.sourceType == CameraSourceType.DEMO ||
+            camera.sourceType == CameraSourceType.ANDROID_ALFRED
 }

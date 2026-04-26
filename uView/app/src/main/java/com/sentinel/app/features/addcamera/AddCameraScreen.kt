@@ -58,6 +58,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sentinel.app.R
 import com.sentinel.app.domain.model.CameraSourceType
 import com.sentinel.app.domain.model.StreamQualityProfile
+import com.sentinel.app.domain.model.isSelectableInShipBuild
+import com.sentinel.app.domain.model.supportInfo
 import com.sentinel.app.ui.components.FastenerDots
 import com.sentinel.app.ui.components.GhostButton
 import com.sentinel.app.ui.components.PrimaryButton
@@ -86,7 +88,7 @@ fun AddCameraScreen(
     onSaveComplete: () -> Unit,
     viewModel: AddCameraViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     if (state.saveSuccess) {
         onSaveComplete()
@@ -304,6 +306,7 @@ private fun StepSelectType(state: AddCameraUiState, vm: AddCameraViewModel) {
                                         slot = slot,
                                         accent = group.accent,
                                         selected = state.selectedSourceType == type,
+                                        enabled = type.isSelectableInShipBuild,
                                         onClick = {
                                             vm.selectSourceType(type)
                                             vm.nextStep()
@@ -382,7 +385,7 @@ private fun SelectFeedHeroPanel() {
                 letterSpacing = (-0.3).sp
             )
             Text(
-                "Choose the source type for the new camera node. Each protocol uses a distinct ingest path.",
+                "This build accepts direct RTSP, MJPEG/HTTP, HLS, IP Webcam, DroidCam, and custom direct URLs. ONVIF profile setup and Alfred cloud relay are unavailable.",
                 fontSize = 11.sp,
                 color = TextSecondary,
                 lineHeight = 15.sp
@@ -398,9 +401,11 @@ private fun TacticalSourceTile(
     slot: String,
     accent: Color,
     selected: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val support = type.supportInfo
     val iconRes = when (type) {
         CameraSourceType.ANDROID_DROIDCAM,
         CameraSourceType.ANDROID_ALFRED,
@@ -427,15 +432,27 @@ private fun TacticalSourceTile(
         CameraSourceType.DEMO             -> "LOCAL/DEMO"
     }
 
-    val borderColor = if (selected) accent else SurfaceStroke
-    val tintColor   = if (selected) accent else TextSecondary
-    val nameColor   = if (selected) accent else TextPrimary
+    val borderColor = when {
+        !enabled -> TextDisabled.copy(alpha = 0.45f)
+        selected -> accent
+        else -> SurfaceStroke
+    }
+    val tintColor = when {
+        !enabled -> TextDisabled
+        selected -> accent
+        else -> TextSecondary
+    }
+    val nameColor = when {
+        !enabled -> TextDisabled
+        selected -> accent
+        else -> TextPrimary
+    }
 
     Box(
         modifier = modifier
             .background(if (selected) SurfaceElevated else SurfaceBase)
             .border(if (selected) 2.dp else 1.dp, borderColor)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // Slot badge row
@@ -454,16 +471,16 @@ private fun TacticalSourceTile(
                 )
                 Box(
                     modifier = Modifier
-                        .background(accent.copy(alpha = if (selected) 0.20f else 0.10f))
-                        .border(1.dp, accent.copy(alpha = 0.5f))
+                        .background((if (enabled) accent else TextDisabled).copy(alpha = if (selected) 0.20f else 0.10f))
+                        .border(1.dp, (if (enabled) accent else TextDisabled).copy(alpha = 0.5f))
                         .padding(horizontal = 5.dp, vertical = 1.dp)
                 ) {
                     Text(
-                        protocolTag,
+                        if (enabled) protocolTag else support.badge,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Black,
                         fontStyle = FontStyle.Italic,
-                        color = accent,
+                        color = if (enabled) accent else TextDisabled,
                         letterSpacing = 0.6.sp
                     )
                 }
@@ -496,7 +513,7 @@ private fun TacticalSourceTile(
                 maxLines = 2
             )
             Text(
-                type.description,
+                support.detail,
                 fontSize = 10.sp,
                 color = TextSecondary,
                 lineHeight = 13.sp,
@@ -508,10 +525,10 @@ private fun TacticalSourceTile(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(if (selected) 3.dp else 1.dp)
-                    .background(accent.copy(alpha = if (selected) 0.9f else 0.3f))
+                    .background((if (enabled) accent else TextDisabled).copy(alpha = if (selected) 0.9f else 0.3f))
             )
         }
-        FastenerDots(color = accent.copy(alpha = if (selected) 0.6f else 0.25f))
+        FastenerDots(color = (if (enabled) accent else TextDisabled).copy(alpha = if (selected) 0.6f else 0.25f))
     }
 }
 
@@ -671,7 +688,7 @@ private fun StepTestConnection(state: AddCameraUiState, vm: AddCameraViewModel) 
                 state.isTesting -> {
                     CircularProgressIndicator(color = CyanPrimary, modifier = Modifier.size(48.dp))
                     Spacer(Modifier.height(12.dp))
-                    Text("Testing connection…", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    Text("Running TCP check...", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                 }
                 state.testResult != null -> {
                     val ok = state.testResult.success
@@ -683,7 +700,7 @@ private fun StepTestConnection(state: AddCameraUiState, vm: AddCameraViewModel) 
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        if (ok) "Host reachable" else "Could not reach host",
+                        if (ok) "TCP endpoint reachable" else "Could not reach TCP endpoint",
                         style = MaterialTheme.typography.titleMedium,
                         color = if (ok) StatusOnline else StatusOffline,
                         fontWeight = FontWeight.Bold
@@ -696,7 +713,7 @@ private fun StepTestConnection(state: AddCameraUiState, vm: AddCameraViewModel) 
                         Text("Latency: ${it}ms", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     }
                     Spacer(Modifier.height(8.dp))
-                    InfoBanner("Stream-level probe requires ExoPlayer — only TCP reachability is tested here.")
+                    InfoBanner("This check opens TCP host:port only. It does not verify credentials or decode RTSP/MJPEG/HLS frames.")
                 }
                 state.testSkipped -> {
                     Icon(Icons.Default.Check, null, tint = TextDisabled, modifier = Modifier.size(48.dp))
@@ -706,9 +723,9 @@ private fun StepTestConnection(state: AddCameraUiState, vm: AddCameraViewModel) 
                 else -> {
                     Icon(Icons.Default.Refresh, null, tint = CyanPrimary, modifier = Modifier.size(48.dp))
                     Spacer(Modifier.height(12.dp))
-                    Text("Ready to test", style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                    Text("Ready for TCP host check", style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(16.dp))
-                    PrimaryButton("Test Connection", onClick = vm::runConnectionTest, icon = Icons.Default.Refresh, modifier = Modifier.fillMaxWidth(0.8f))
+                    PrimaryButton("Run TCP Check", onClick = vm::runConnectionTest, icon = Icons.Default.Refresh, modifier = Modifier.fillMaxWidth(0.8f))
                     Spacer(Modifier.height(10.dp))
                     GhostButton("Skip Test", onClick = { vm.skipTest(); vm.nextStep() }, modifier = Modifier.fillMaxWidth(0.8f))
                 }
@@ -745,7 +762,7 @@ private fun StepConfirm(state: AddCameraUiState, vm: AddCameraViewModel) {
                     Box(Modifier.fillMaxWidth().padding(start = 16.dp).height(1.dp).background(SurfaceStroke))
                     com.sentinel.app.ui.components.InfoRow(
                         "Connection Test",
-                        if (it.success) "✓ Passed" else "✗ Failed"
+                        if (it.success) "TCP reachable" else "TCP failed"
                     )
                 }
             }

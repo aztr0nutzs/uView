@@ -60,6 +60,8 @@ import com.sentinel.app.domain.model.CameraSourceType
 import com.sentinel.app.domain.model.DiscoveredDevice
 import com.sentinel.app.domain.model.DiscoveryConfidence
 import com.sentinel.app.domain.model.DiscoveryMethod
+import com.sentinel.app.domain.model.canBeSuggestedFromDiscovery
+import com.sentinel.app.domain.model.supportInfo
 import com.sentinel.app.domain.service.DiscoveryCapabilities
 import com.sentinel.app.ui.components.GhostButton
 import com.sentinel.app.ui.components.PrimaryButton
@@ -192,9 +194,10 @@ private fun DiscoveryContent(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (!state.isScanning) {
                         PrimaryButton(
-                            text     = if (state.scanComplete) "Scan Again" else "Start Scan",
+                            text     = if (state.scanComplete) "Scan Again" else "Start LAN Scan",
                             onClick  = onStartScan,
                             icon     = Icons.Default.Radar,
+                            enabled  = state.capabilities?.wifiConnected != false,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -292,7 +295,7 @@ private fun CapabilitiesBanner(caps: DiscoveryCapabilities) {
                     add("TCP port probes")
                 }.joinToString(" · ")
                 Text(
-                    "We'll listen on $tools and only look at your local network. Nothing leaves your phone.",
+                    "$tools run locally only. Results are hints; stream setup still requires a supported direct RTSP, MJPEG, HLS, IP Webcam, DroidCam, or custom URL source.",
                     style = MaterialTheme.typography.bodySmall, color = TextSecondary
                 )
             }
@@ -325,7 +328,7 @@ private fun ScanProgressCard(activeStrategies: Set<DiscoveryMethod>) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StrategyChip("ARP",   DiscoveryMethod.ARP_TABLE           in activeStrategies)
             StrategyChip("mDNS",  DiscoveryMethod.MDNS                in activeStrategies)
-            StrategyChip("ONVIF", DiscoveryMethod.ONVIF_WS_DISCOVERY  in activeStrategies)
+            StrategyChip("ONVIF_ID", DiscoveryMethod.ONVIF_WS_DISCOVERY  in activeStrategies)
             StrategyChip("TCP",   DiscoveryMethod.TCP_PORT_PROBE       in activeStrategies)
         }
     }
@@ -433,6 +436,8 @@ private fun ScanSummaryCard(state: DiscoveryUiState) {
 
 @Composable
 private fun DiscoveredDeviceCard(device: DiscoveredDevice, onAddCamera: () -> Unit) {
+    val suggestedType = device.probableSourceType
+    val canUseSuggestion = suggestedType?.canBeSuggestedFromDiscovery == true
     val icon = when (device.probableSourceType) {
         CameraSourceType.ANDROID_IPWEBCAM,
         CameraSourceType.ANDROID_DROIDCAM,
@@ -504,16 +509,17 @@ private fun DiscoveredDeviceCard(device: DiscoveredDevice, onAddCamera: () -> Un
                             fontSize = 9.sp, fontWeight = FontWeight.Black, fontStyle = FontStyle.Italic, letterSpacing = 0.6.sp)
                     }
                 } else {
+                    val actionAccent = if (canUseSuggestion) accent else WarningAmber
                     Box(
                         modifier = Modifier
-                            .background(accent.copy(alpha = 0.12f))
-                            .border(1.dp, accent.copy(alpha = 0.55f))
+                            .background(actionAccent.copy(alpha = 0.12f))
+                            .border(1.dp, actionAccent.copy(alpha = 0.55f))
                             .clickable(onClick = onAddCamera)
                             .padding(horizontal = 12.dp, vertical = 7.dp)
                     ) {
                         Text(
-                            "ADD",
-                            color = accent,
+                            if (canUseSuggestion) "SETUP" else "MANUAL",
+                            color = actionAccent,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Black,
                             fontStyle = FontStyle.Italic,
@@ -688,7 +694,7 @@ private fun ScanIdlePrompt() {
     ) {
         Icon(Icons.Default.Radar, null, tint = OrangePrimary.copy(alpha = 0.7f), modifier = Modifier.size(48.dp))
         Text(
-            "READY TO SWEEP",
+            "READY FOR LAN SCAN",
             fontSize = 13.sp,
             fontWeight = FontWeight.Black,
             fontStyle = FontStyle.Italic,
@@ -696,12 +702,12 @@ private fun ScanIdlePrompt() {
             letterSpacing = 1.2.sp
         )
         Text(
-            "Hit Start Scan and we'll look for cameras on your local network.",
+            "Run a local discovery pass for camera-like devices on your current Wi-Fi network.",
             style = MaterialTheme.typography.bodySmall,
             color = TextSecondary
         )
         Text(
-            "We listen for ONVIF chatter, mDNS broadcasts, and known camera ports (RTSP, DroidCam, IP Webcam, etc.). Nothing leaves your phone.",
+            "Discovery can identify ONVIF, mDNS, ARP, and camera-port signals. It does not auto-configure ONVIF profiles or verify stream credentials.",
             fontSize = 11.sp,
             color = TextDisabled,
             lineHeight = 15.sp
@@ -726,7 +732,7 @@ private fun DiscoveredDevice.classifyHeadline(): String = when (confidence) {
             when {
                 brand != null && model != null -> "ONVIF camera · $brand $model"
                 brand != null                  -> "ONVIF camera · $brand"
-                else                           -> "ONVIF camera"
+                else                           -> "ONVIF device"
             }
         }
         probableSourceType == CameraSourceType.ANDROID_IPWEBCAM -> "Phone running IP Webcam"
@@ -753,7 +759,7 @@ private fun DiscoveredDevice.classifyHeadline(): String = when (confidence) {
 private fun DiscoveredDevice.classifyReason(): String {
     val bits = mutableListOf<String>()
     when (discoveryMethod) {
-        DiscoveryMethod.ONVIF_WS_DISCOVERY -> bits += "answered ONVIF discovery (a real ONVIF camera responds to this)"
+        DiscoveryMethod.ONVIF_WS_DISCOVERY -> bits += "answered ONVIF discovery; profile stream setup is not wired in this build"
         DiscoveryMethod.MDNS -> bits += mdnsServiceName
             ?.let { "broadcasting \"$it\" over mDNS" }
             ?: "advertised itself over mDNS"
@@ -796,19 +802,23 @@ private fun DiscoveredDevice.classifyReason(): String {
 
 private fun DiscoveredDevice.nextStepHint(): String? {
     if (isAlreadyAdded) return "Already in your camera list — no action needed."
+    val support = probableSourceType?.supportInfo
+    if (support?.isSelectable == false) {
+        return "${probableSourceType.displayName} cannot be auto-configured here. Use Add Manually only if you have a direct RTSP/MJPEG/HLS URL."
+    }
     return when (confidence) {
         DiscoveryConfidence.CONFIRMED -> when (discoveryMethod) {
             DiscoveryMethod.ONVIF_WS_DISCOVERY ->
-                "Tap Add — we'll wire it up as ONVIF. You'll just need the camera's username and password."
+                "ONVIF identity is confirmed, but profile setup is unavailable. Add manually with a direct RTSP URL if you know it."
             DiscoveryMethod.MDNS ->
-                "Tap Add — we'll prefill the host and port. No stream confirmed yet, but the broadcast looks legit."
+                "Open manual setup and use the shown host/port. No stream was decoded by discovery."
             else ->
-                "Tap Add to set this up. We'll prefill what we know."
+                "Open manual setup and use the shown host/port. Discovery does not verify credentials or decode the stream."
         }
         DiscoveryConfidence.PROBABLE ->
-            "Tap Add and we'll prefill ${ipAddress}${if (port > 0) ":$port" else ""}. You may need credentials before the stream connects."
+            "Open manual setup for ${ipAddress}${if (port > 0) ":$port" else ""}. You may need a path and credentials before the stream connects."
         DiscoveryConfidence.POSSIBLE ->
-            "Could be a camera, could be something else. No stream detected yet — tap Add to try, or skip it."
+            "Could be a camera, could be something else. No stream was confirmed; add manually only if you know the endpoint."
         DiscoveryConfidence.UNKNOWN ->
             "Probably not a camera. Add manually only if you know exactly what this is."
     }
@@ -818,7 +828,8 @@ private fun DiscoveredDevice.protocolLine(): String {
     val parts = mutableListOf<String>()
     val type = probableSourceType?.let { type ->
         when (type) {
-            CameraSourceType.RTSP, CameraSourceType.ONVIF -> "RTSP"
+            CameraSourceType.RTSP -> "RTSP"
+            CameraSourceType.ONVIF -> "ONVIF identity only"
             CameraSourceType.MJPEG -> "MJPEG/HTTP"
             CameraSourceType.HLS   -> "HLS"
             CameraSourceType.ANDROID_DROIDCAM -> "DroidCam"
@@ -850,7 +861,7 @@ private fun Int.portLabel(): String = when (this) {
 private fun DiscoveryMethod.shortLabel(): String = when (this) {
     DiscoveryMethod.ARP_TABLE          -> "ARP"
     DiscoveryMethod.MDNS               -> "mDNS"
-    DiscoveryMethod.ONVIF_WS_DISCOVERY -> "ONVIF"
+    DiscoveryMethod.ONVIF_WS_DISCOVERY -> "ONVIF id"
     DiscoveryMethod.TCP_PORT_PROBE     -> "TCP probe"
     DiscoveryMethod.MANUAL             -> "manual"
 }

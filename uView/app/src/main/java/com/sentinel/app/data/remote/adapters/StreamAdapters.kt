@@ -15,7 +15,7 @@ import javax.inject.Singleton
  * AndroidPhoneSourceAdapterImpl
  *
  * Builds stream URLs for old Android phones acting as IP camera sources.
- * Each supported app (DroidCam, IP Webcam, Alfred, custom) has distinct
+ * Each supported direct-stream app (DroidCam, IP Webcam, custom) has distinct
  * URL conventions on different default ports.
  *
  * IMPLEMENTATION STATUS:
@@ -32,7 +32,6 @@ class AndroidPhoneSourceAdapterImpl @Inject constructor() : AndroidPhoneSourceAd
 
     override val supportedTypes: List<CameraSourceType> = listOf(
         CameraSourceType.ANDROID_DROIDCAM,
-        CameraSourceType.ANDROID_ALFRED,
         CameraSourceType.ANDROID_IPWEBCAM,
         CameraSourceType.ANDROID_CUSTOM
     )
@@ -94,8 +93,8 @@ class AndroidPhoneSourceAdapterImpl @Inject constructor() : AndroidPhoneSourceAd
                 // Alfred does not provide a direct LAN stream endpoint.
                 // It routes through Alfred's cloud relay. Not supported for local LAN mode.
                 // The UI should surface this limitation clearly.
-                Timber.w("Alfred LAN stream not supported. Returning placeholder URL.")
-                "alfred://unsupported-lan-stream"
+                Timber.w("Alfred LAN stream not supported.")
+                ""
             }
 
             CameraSourceType.ANDROID_CUSTOM, CameraSourceType.GENERIC_URL -> {
@@ -227,8 +226,7 @@ class GenericStreamAdapterImpl @Inject constructor() :
 
     override val supportedTypes: List<CameraSourceType> = listOf(
         CameraSourceType.GENERIC_URL,
-        CameraSourceType.HLS,
-        CameraSourceType.DEMO
+        CameraSourceType.HLS
     )
     override val isImplemented: Boolean = true
 

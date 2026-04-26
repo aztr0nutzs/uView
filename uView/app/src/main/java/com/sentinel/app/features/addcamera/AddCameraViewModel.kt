@@ -9,6 +9,7 @@ import com.sentinel.app.domain.model.CameraSourceType
 import com.sentinel.app.domain.model.ConnectionTestResult
 import com.sentinel.app.domain.model.StreamQualityProfile
 import com.sentinel.app.domain.model.StreamTransport
+import com.sentinel.app.domain.model.isSelectableInShipBuild
 import com.sentinel.app.domain.repository.CameraRepository
 import com.sentinel.app.domain.service.CameraConnectionTester
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -84,7 +85,7 @@ data class AddCameraUiState(
     )
 
     val canProceed: Boolean get() = when (step) {
-        WizardStep.SELECT_TYPE   -> selectedSourceType != null
+        WizardStep.SELECT_TYPE   -> selectedSourceType?.isSelectableInShipBuild == true
         WizardStep.NAME_AND_ROOM -> cameraName.isNotBlank() && cameraRoom.isNotBlank()
         WizardStep.NETWORK       -> if (isPhoneSource) phoneEndpointUrl.isNotBlank()
                                     else host.isNotBlank() && port.isNotBlank()
@@ -120,6 +121,13 @@ class AddCameraViewModel @Inject constructor(
     }
 
     fun selectSourceType(type: CameraSourceType) {
+        if (!type.isSelectableInShipBuild) {
+            _state.update {
+                it.copy(validationErrors = it.validationErrors + ("sourceType" to "${type.displayName} is unavailable in this build."))
+            }
+            return
+        }
+
         val defaultPort = when (type) {
             CameraSourceType.RTSP                -> "554"
             CameraSourceType.MJPEG               -> "8080"
@@ -179,6 +187,16 @@ class AddCameraViewModel @Inject constructor(
     fun skipTest() = _state.update { it.copy(testSkipped = true) }
 
     fun saveCamera() = viewModelScope.launch {
+        val selected = _state.value.selectedSourceType
+        if (selected?.isSelectableInShipBuild != true) {
+            _state.update {
+                it.copy(
+                    isSaving = false,
+                    validationErrors = it.validationErrors + ("sourceType" to "Select a supported direct stream source before saving.")
+                )
+            }
+            return@launch
+        }
         _state.update { it.copy(isSaving = true) }
         val camera = buildDraftCamera(_state.value)
         cameraRepository.saveCamera(camera)

@@ -43,14 +43,15 @@ class PlaybackManager @Inject constructor(
      */
     suspend fun startCamera(camera: CameraDevice) {
         if (streamUrlResolver.isUnsupportedSource(camera)) {
-            Timber.w("startCamera: ${camera.id} is an unsupported source (Alfred LAN)")
-            // PlayerState.Error will be set inside the service when the
-            // resolved URL is "alfred://unsupported-lan-stream"
+            Timber.w("startCamera: ${camera.id} is an unsupported source (${camera.sourceType})")
+            playbackService.emitUnsupported(camera.id)
+            return
         }
 
         val endpoint = streamUrlResolver.resolve(camera)
         if (endpoint == null) {
             Timber.e("startCamera: could not resolve endpoint for ${camera.id}")
+            playbackService.emitError(camera.id, "Stream source is not available in this build")
             return
         }
         playbackService.play(camera.id, endpoint)

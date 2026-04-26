@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -173,6 +174,29 @@ fun SectionCard(
 
 @Composable
 fun SettingsToggleRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    iconTint: Color = CyanPrimary,
+    iconBg: Color = CyanSubtle
+) {
+    SettingsToggleRow(
+        icon = rememberVectorPainter(icon),
+        title = title,
+        subtitle = subtitle,
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        modifier = modifier,
+        iconTint = iconTint,
+        iconBg = iconBg
+    )
+}
+
+@Composable
+fun SettingsToggleRow(
     icon: Painter,
     title: String,
     subtitle: String? = null,
@@ -235,6 +259,29 @@ fun SettingsToggleRow(
 // ─────────────────────────────────────────────────────────────────────────────
 // SettingsRow — chevron/navigation variant
 // ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun SettingsNavRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    valueLabel: String? = null,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconTint: Color = CyanPrimary,
+    iconBg: Color = CyanSubtle
+) {
+    SettingsNavRow(
+        icon = rememberVectorPainter(icon),
+        title = title,
+        subtitle = subtitle,
+        valueLabel = valueLabel,
+        onClick = onClick,
+        modifier = modifier,
+        iconTint = iconTint,
+        iconBg = iconBg
+    )
+}
 
 @Composable
 fun SettingsNavRow(
