@@ -35,7 +35,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sentinel.companion.ui.screens.alerts.AlertsScreen
-import com.sentinel.companion.ui.screens.cameras.CamerasScreen
 import com.sentinel.companion.ui.screens.connect.ConnectScreen
 import com.sentinel.companion.ui.screens.dashboard.DashboardScreen
 import com.sentinel.companion.ui.screens.devicesettings.DeviceSettingsScreen
@@ -56,7 +55,6 @@ import com.sentinel.companion.ui.theme.TextSecondary
 object Routes {
     const val CONNECT         = "connect"
     const val DASHBOARD       = "dashboard"
-    const val CAMERAS         = "cameras"
     const val DEVICE_LIST     = "device_list"
     const val ALERTS          = "alerts"
     const val SETTINGS        = "settings"
@@ -95,16 +93,10 @@ fun CompanionNavHost(startDestination: String = Routes.CONNECT) {
         composable(Routes.DASHBOARD) {
             MainScaffold(navController = navController) {
                 DashboardScreen(
-                    onNavigateToCameras      = { navController.navigate(Routes.DEVICE_LIST) },
-                    onNavigateToAlerts       = { navController.navigate(Routes.ALERTS) },
-                    onNavigateToCameraDetail = { /* camera detail in same tab */ },
+                    onNavigateToCameras = { navController.navigate(Routes.DEVICE_LIST) },
+                    onNavigateToAlerts  = { navController.navigate(Routes.ALERTS) },
+                    onAddDevice         = { navController.navigate(Routes.SETUP_WIZARD) },
                 )
-            }
-        }
-
-        composable(Routes.CAMERAS) {
-            MainScaffold(navController = navController) {
-                CamerasScreen(onCameraDetail = { /* future camera detail */ })
             }
         }
 

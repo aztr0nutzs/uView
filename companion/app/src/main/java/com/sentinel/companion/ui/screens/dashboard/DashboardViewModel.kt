@@ -3,10 +3,12 @@ package com.sentinel.companion.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sentinel.companion.data.model.Alert
-import com.sentinel.companion.data.model.Camera
-import com.sentinel.companion.data.model.CameraStatus
+import com.sentinel.companion.data.model.DeviceProfile
+import com.sentinel.companion.data.model.DeviceState
 import com.sentinel.companion.data.model.SystemStatus
 import com.sentinel.companion.data.repository.CameraRepository
+import com.sentinel.companion.data.repository.DeviceRepository
+import com.sentinel.companion.data.repository.PreferencesRepository
 import com.sentinel.companion.data.sync.SyncPhase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,7 @@ import javax.inject.Inject
 
 data class DashboardUiState(
     val systemStatus: SystemStatus = SystemStatus(),
-    val pinnedCameras: List<Camera> = emptyList(),
+    val pinnedDevices: List<DeviceProfile> = emptyList(),
     val recentAlerts: List<Alert> = emptyList(),
     val isLoading: Boolean = true,
     val isSyncing: Boolean = false,
@@ -28,7 +30,9 @@ data class DashboardUiState(
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val repo: CameraRepository,
+    private val cameraRepo: CameraRepository,
+    private val deviceRepo: DeviceRepository,
+    private val prefsRepo: PreferencesRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -37,32 +41,49 @@ class DashboardViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repo.cameras,
-                repo.alerts,
-                repo.systemStatus,
-                repo.syncState,
-            ) { cameras, alerts, status, sync ->
+                deviceRepo.devices,
+                cameraRepo.alerts,
+                cameraRepo.syncState,
+                prefsRepo.connectionPrefs,
+            ) { devices, alerts, sync, conn ->
+                val online   = devices.count { it.stateEnum() == DeviceState.ONLINE }
+                val offline  = devices.count { it.stateEnum() == DeviceState.OFFLINE }
+                val connecting = devices.count { it.stateEnum() == DeviceState.CONNECTING }
+                val disabled = devices.count { it.stateEnum() == DeviceState.DISABLED }
+                val unread   = alerts.count { !it.isRead }
+
                 DashboardUiState(
-                    systemStatus  = status,
-                    pinnedCameras = cameras.filter { it.isFavorite || it.statusEnum() == CameraStatus.ONLINE }.take(4),
+                    systemStatus = SystemStatus(
+                        isConnected       = sync.lastOutcome?.ok == true,
+                        hostAddress       = conn.hostAddress,
+                        totalCameras      = devices.size,
+                        onlineCameras    = online,
+                        offlineCameras   = offline,
+                        connectingCameras = connecting,
+                        disabledCameras  = disabled,
+                        unreadAlerts     = unread,
+                        uptimeMs         = 0L,
+                        lastSyncMs       = sync.lastOutcome?.finishedAtMs ?: 0L,
+                    ),
+                    pinnedDevices = devices
+                        .sortedWith(
+                            compareByDescending<DeviceProfile> { it.isFavorite }
+                                .thenByDescending { it.stateEnum() == DeviceState.ONLINE }
+                                .thenBy { it.name },
+                        )
+                        .take(4),
                     recentAlerts  = alerts.take(5),
                     isLoading     = false,
                     isSyncing     = sync.phase == SyncPhase.RUNNING,
-                    isEmpty       = cameras.isEmpty(),
+                    isEmpty       = devices.isEmpty(),
                     syncError     = sync.lastOutcome?.takeIf { !it.ok }?.error,
                 )
             }.collect { _uiState.value = it }
         }
-        // Kick off a real sync as soon as the dashboard appears so first paint
-        // reflects observed reality, not just the cached DB state.
         refresh()
     }
 
     fun refresh() {
-        viewModelScope.launch { repo.refresh() }
-    }
-
-    fun reconnect(cameraId: String) {
-        viewModelScope.launch { repo.reconnectCamera(cameraId) }
+        viewModelScope.launch { cameraRepo.refresh() }
     }
 }

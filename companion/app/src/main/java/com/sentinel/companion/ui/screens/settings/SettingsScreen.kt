@@ -121,15 +121,19 @@ fun SettingsScreen(
             item { SectionHeader(title = "NOTIFICATIONS") }
             item {
                 SectionCard {
+                    // Push & motion alerts depend on a server-side push pipeline that has
+                    // not shipped yet — surface them as disabled rather than as toggles
+                    // that silently do nothing when flipped.
                     SettingsRow(
                         icon = Icons.Filled.Notifications,
-                        iconTint = OrangePrimary,
+                        iconTint = TextDisabled,
                         title = "PUSH_NOTIFICATIONS",
-                        subtitle = "Enable all push alerts",
+                        subtitle = "Requires Sentinel Hub push pipeline (not yet available)",
                         trailing = {
                             Switch(
-                                checked = prefs.notificationsEnabled,
-                                onCheckedChange = viewModel::setNotifications,
+                                checked = false,
+                                onCheckedChange = null,
+                                enabled = false,
                                 colors = switchColors(),
                             )
                         },
@@ -137,23 +141,29 @@ fun SettingsScreen(
                     HorizontalDivider(color = SurfaceStroke, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
                     SettingsRow(
                         icon = Icons.Filled.Videocam,
-                        iconTint = OrangePrimary,
+                        iconTint = TextDisabled,
                         title = "MOTION_ALERTS",
-                        subtitle = "Notify on motion detection",
+                        subtitle = "Requires server-side motion events (not yet available)",
                         trailing = {
                             Switch(
-                                checked = prefs.motionAlertsEnabled,
-                                onCheckedChange = viewModel::setMotionAlerts,
+                                checked = false,
+                                onCheckedChange = null,
+                                enabled = false,
                                 colors = switchColors(),
                             )
                         },
                     )
                     HorizontalDivider(color = SurfaceStroke, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
+                    // Connection alerts ARE wired — the sync service writes them to the
+                    // alerts feed on every observed transition; the toggle controls
+                    // whether they are surfaced. Persist the preference so the alerts
+                    // feed reflects the user's choice even though we don't yet emit OS
+                    // notifications.
                     SettingsRow(
                         icon = Icons.Filled.SignalCellularAlt,
                         iconTint = CyanTertiaryDim,
                         title = "CONNECTION_ALERTS",
-                        subtitle = "Notify on camera connect/disconnect",
+                        subtitle = "Show camera connect/disconnect events in alerts feed",
                         trailing = {
                             Switch(
                                 checked = prefs.connectionAlertsEnabled,
@@ -169,52 +179,58 @@ fun SettingsScreen(
             item { SectionHeader(title = "STREAM_PLAYBACK") }
             item {
                 SectionCard {
+                    // The stream player does not yet honor data-saver or quality
+                    // selection. Disable the controls so they don't claim to work.
                     SettingsRow(
                         icon = Icons.Filled.DataSaverOn,
-                        iconTint = GreenOnline,
+                        iconTint = TextDisabled,
                         title = "DATA_SAVER",
-                        subtitle = "Reduce stream quality to save bandwidth",
+                        subtitle = "Stream player does not yet honor this preference",
                         trailing = {
                             Switch(
-                                checked = prefs.dataSaverMode,
-                                onCheckedChange = viewModel::setDataSaver,
+                                checked = false,
+                                onCheckedChange = null,
+                                enabled = false,
                                 colors = switchColors(),
                             )
                         },
                     )
                     HorizontalDivider(color = SurfaceStroke, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
 
-                    // Stream quality selector
+                    // Stream quality selector — read-only, locked to AUTO until the
+                    // player exposes quality switching.
                     Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("STREAM_QUALITY", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text("STREAM_QUALITY", color = TextDisabled, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         }
-                        Text("Select preferred stream quality level", color = TextSecondary, fontSize = 12.sp)
+                        Text(
+                            "Locked to AUTO — manual quality selection ships with the player upgrade",
+                            color = TextDisabled, fontSize = 12.sp,
+                        )
                         Spacer(Modifier.height(10.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             StreamQuality.entries.forEach { quality ->
-                                val selected = prefs.streamQuality == quality
+                                val selected = quality == StreamQuality.AUTO
                                 Text(
                                     text = quality.label.uppercase(),
-                                    color = if (selected) BackgroundDeep else TextSecondary,
+                                    color = if (selected) BackgroundDeep else TextDisabled,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 0.5.sp,
                                     modifier = Modifier
                                         .weight(1f)
                                         .background(
-                                            if (selected) OrangePrimary else SurfaceBase,
+                                            if (selected) TextDisabled else SurfaceBase,
                                             RoundedCornerShape(8.dp),
                                         )
-                                        .border(1.dp, if (selected) OrangePrimary else SurfaceStroke, RoundedCornerShape(8.dp))
-                                        .clickable { viewModel.setStreamQuality(quality) }
+                                        .border(1.dp, SurfaceStroke, RoundedCornerShape(8.dp))
                                         .padding(vertical = 8.dp)
                                         .then(Modifier),
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -229,15 +245,18 @@ fun SettingsScreen(
             item { SectionHeader(title = "SECURITY") }
             item {
                 SectionCard {
+                    // No BiometricPrompt is wired into MainActivity yet; flipping this
+                    // toggle would store a pref that is never enforced. Disable it.
                     SettingsRow(
                         icon = Icons.Filled.Lock,
-                        iconTint = OrangePrimary,
+                        iconTint = TextDisabled,
                         title = "BIOMETRIC_LOCK",
-                        subtitle = "Require biometric auth to open app",
+                        subtitle = "BiometricPrompt not yet wired into app launch",
                         trailing = {
                             Switch(
-                                checked = prefs.biometricLock,
-                                onCheckedChange = viewModel::setBiometricLock,
+                                checked = false,
+                                onCheckedChange = null,
+                                enabled = false,
                                 colors = switchColors(),
                             )
                         },

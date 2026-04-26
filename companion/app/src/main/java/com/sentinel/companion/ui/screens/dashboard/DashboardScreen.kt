@@ -22,9 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.FiberManualRecord
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
@@ -51,8 +48,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.AlertType
-import com.sentinel.companion.data.model.Camera
-import com.sentinel.companion.data.model.CameraStatus
+import androidx.compose.ui.platform.LocalContext
+import com.sentinel.companion.data.model.DeviceProfile
+import com.sentinel.companion.data.model.DeviceState
+import com.sentinel.companion.ui.screens.stream.StreamViewerActivity
 import com.sentinel.companion.ui.components.CompanionTopBar
 import com.sentinel.companion.ui.components.CornerBrackets
 import com.sentinel.companion.ui.components.PulseDot
@@ -86,10 +85,11 @@ import java.util.Locale
 fun DashboardScreen(
     onNavigateToCameras: () -> Unit,
     onNavigateToAlerts: () -> Unit,
-    onNavigateToCameraDetail: (String) -> Unit,
+    onAddDevice: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -101,23 +101,36 @@ fun DashboardScreen(
             subtitle    = "SENTINEL_HUB // ${state.systemStatus.hostAddress.ifBlank { "LOCAL_MODE" }}",
             isConnected = state.systemStatus.isConnected,
             trailing    = {
-                BadgedBox(
-                    badge = {
-                        if (state.systemStatus.unreadAlerts > 0) {
-                            Badge(containerColor = ErrorRed) {
-                                Text(state.systemStatus.unreadAlerts.toString(), fontSize = 8.sp)
-                            }
-                        }
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Notifications,
-                        contentDescription = "Alerts",
-                        tint = TextSecondary,
+                        imageVector = Icons.Filled.Refresh,
+                        contentDescription = "Refresh",
+                        tint = if (state.isSyncing) OrangePrimary else TextSecondary,
                         modifier = Modifier
                             .size(22.dp)
-                            .clickable { onNavigateToAlerts() },
+                            .clickable(enabled = !state.isSyncing) { viewModel.refresh() },
                     )
+                    BadgedBox(
+                        badge = {
+                            if (state.systemStatus.unreadAlerts > 0) {
+                                Badge(containerColor = ErrorRed) {
+                                    Text(state.systemStatus.unreadAlerts.toString(), fontSize = 8.sp)
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Notifications,
+                            contentDescription = "Alerts",
+                            tint = TextSecondary,
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clickable { onNavigateToAlerts() },
+                        )
+                    }
                 }
             },
         )
@@ -126,6 +139,63 @@ fun DashboardScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // ── Sync error banner (only when last sync actually failed) ───
+            if (state.syncError != null) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(ErrorRed.copy(alpha = 0.10f), RoundedCornerShape(8.dp))
+                            .border(1.dp, ErrorRed.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .padding(12.dp),
+                    ) {
+                        Text(
+                            text = "// SYNC_FAILED · ${state.syncError}",
+                            color = ErrorRed,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
+            }
+
+            // ── Empty state — no devices yet → only useful action is "add" ──
+            if (state.isEmpty && !state.isLoading) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(SurfaceBase, RoundedCornerShape(12.dp))
+                            .border(1.dp, SurfaceStroke, RoundedCornerShape(12.dp))
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(Icons.Filled.Videocam, null, tint = TextDisabled, modifier = Modifier.size(36.dp))
+                        Text("NO_DEVICES_PAIRED", color = TextSecondary, fontSize = 12.sp,
+                            fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        Text(
+                            "Add a camera to start monitoring. Sentinel won't fabricate devices for you.",
+                            color = TextDisabled,
+                            fontSize = 11.sp,
+                        )
+                        Row(
+                            modifier = Modifier
+                                .background(OrangePrimary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                .border(1.dp, OrangePrimary, RoundedCornerShape(8.dp))
+                                .clickable(onClick = onAddDevice)
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(Icons.Filled.Add, null, tint = OrangePrimary, modifier = Modifier.size(14.dp))
+                            Text("ADD_DEVICE", color = OrangePrimary, fontSize = 10.sp,
+                                fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                        }
+                    }
+                }
+            }
+
             // ── Stats row ──────────────────────────────────────────────────
             item {
                 Row(
@@ -179,13 +249,13 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(vertical = 4.dp),
                 ) {
-                    items(state.pinnedCameras) { camera ->
+                    items(state.pinnedDevices) { device ->
                         FeedTile(
-                            camera = camera,
-                            onClick = { onNavigateToCameraDetail(camera.id) },
+                            device = device,
+                            onClick = { StreamViewerActivity.launch(context, device.id) },
                         )
                     }
-                    if (state.pinnedCameras.isEmpty()) {
+                    if (state.pinnedDevices.isEmpty()) {
                         item {
                             Box(
                                 modifier = Modifier
@@ -209,10 +279,10 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    QuickAction(icon = Icons.Filled.GridView,      label = "MULTI_VIEW",    tint = OrangePrimary,  modifier = Modifier.weight(1f), onClick = {})
-                    QuickAction(icon = Icons.Filled.NetworkCheck,  label = "SCAN_NET",      tint = CyanTertiaryDim, modifier = Modifier.weight(1f), onClick = {})
-                    QuickAction(icon = Icons.Filled.Notifications, label = "ALERTS",        tint = ErrorRed,       modifier = Modifier.weight(1f), onClick = onNavigateToAlerts)
-                    QuickAction(icon = Icons.Filled.Add,           label = "ADD_CAM",       tint = GreenOnline,    modifier = Modifier.weight(1f), onClick = {})
+                    QuickAction(icon = Icons.Filled.Add,           label = "ADD_CAM",   tint = GreenOnline,    modifier = Modifier.weight(1f), onClick = onAddDevice)
+                    QuickAction(icon = Icons.Filled.NetworkCheck,  label = "SCAN_NET",  tint = CyanTertiaryDim, modifier = Modifier.weight(1f), onClick = onAddDevice)
+                    QuickAction(icon = Icons.Filled.Notifications, label = "ALERTS",    tint = ErrorRed,       modifier = Modifier.weight(1f), onClick = onNavigateToAlerts)
+                    QuickAction(icon = Icons.Filled.Refresh,       label = "RE_SYNC",   tint = OrangePrimary,  modifier = Modifier.weight(1f), onClick = { viewModel.refresh() })
                 }
             }
 
@@ -270,8 +340,8 @@ fun DashboardScreen(
 // ─── Feed tile (horizontal scroll) ───────────────────────────────────────────
 
 @Composable
-private fun FeedTile(camera: Camera, onClick: () -> Unit) {
-    val isOnline = camera.statusEnum() == CameraStatus.ONLINE
+private fun FeedTile(device: DeviceProfile, onClick: () -> Unit) {
+    val isOnline = device.stateEnum() == DeviceState.ONLINE
 
     Box(
         modifier = Modifier
@@ -317,7 +387,7 @@ private fun FeedTile(camera: Camera, onClick: () -> Unit) {
         ) {
             Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
                 Text(
-                    text = camera.name,
+                    text = device.name,
                     color = TextPrimary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
@@ -329,9 +399,9 @@ private fun FeedTile(camera: Camera, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(camera.sourceTypeEnum().label, color = CyanTertiaryDim, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                    if (isOnline && camera.latencyMs > 0) {
-                        Text("${camera.latencyMs}ms", color = GreenOnline, fontSize = 8.sp)
+                    Text(device.protocolEnum().label, color = CyanTertiaryDim, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    if (isOnline && device.latencyMs > 0) {
+                        Text("${device.latencyMs}ms", color = GreenOnline, fontSize = 8.sp)
                     }
                 }
             }
@@ -445,6 +515,7 @@ private fun QuickAction(
 // ─── Time formatters ──────────────────────────────────────────────────────────
 
 private fun formatUptime(ms: Long): String {
+    if (ms <= 0L) return "—"
     val hours = ms / 3_600_000
     val mins  = (ms % 3_600_000) / 60_000
     return "${hours}h ${mins}m"
