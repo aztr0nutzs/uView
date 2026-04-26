@@ -1,5 +1,6 @@
 package com.sentinel.app.core.notifications
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -99,6 +100,7 @@ class NotificationHelper @Inject constructor(
      * Chooses the appropriate channel based on event type.
      * Silently skips if POST_NOTIFICATIONS is not granted (API 33+).
      */
+    @SuppressLint("MissingPermission")
     fun postEventNotification(event: CameraEvent) {
         if (!hasNotificationPermission()) return
 
@@ -130,8 +132,12 @@ class NotificationHelper @Inject constructor(
             )
             .build()
 
-        NotificationManagerCompat.from(context).notify(notifId, notification)
-        Timber.d("NotificationHelper: posted ${event.eventType.name} for ${event.cameraName}")
+        try {
+            NotificationManagerCompat.from(context).notify(notifId, notification)
+            Timber.d("NotificationHelper: posted ${event.eventType.name} for ${event.cameraName}")
+        } catch (e: SecurityException) {
+            Timber.w(e, "NotificationHelper: notification permission denied at post time")
+        }
     }
 
     /**

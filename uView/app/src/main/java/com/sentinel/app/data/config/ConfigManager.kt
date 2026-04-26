@@ -139,7 +139,8 @@ class ConfigManager @Inject constructor(
                 try {
                     val sourceType = runCatching {
                         com.sentinel.app.domain.model.CameraSourceType.valueOf(entry.sourceType)
-                    }.getOrNull() ?: run {
+                    }.getOrNull()
+                    if (sourceType == null) {
                         Timber.w("ConfigManager: skipping camera ${entry.id} — unknown sourceType ${entry.sourceType}")
                         skipped++
                         continue

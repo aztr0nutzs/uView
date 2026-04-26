@@ -2,6 +2,7 @@ package com.sentinel.app.data.discovery.onvif
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class OnvifWsDiscovery @Inject constructor(
+    @ApplicationContext
     private val context: Context
 ) {
 

@@ -28,7 +28,7 @@ import javax.inject.Inject
  * to manifest-declared receivers. Dynamic registration is required.
  */
 @AndroidEntryPoint
-class NetworkStateReceiver : BroadcastReceiver() {
+class NetworkStateReceiver @Inject constructor() : BroadcastReceiver() {
 
     @Inject lateinit var monitorServiceController: MonitorServiceController
 

@@ -51,8 +51,8 @@ class ExoPlayerFactory @Inject constructor(
         Timber.d("ExoPlayerFactory: creating player for ${endpoint.url}")
 
         val player = ExoPlayer.Builder(context)
-            .setSeekBackIncrementMs(0)
-            .setSeekForwardIncrementMs(0)
+            .setSeekBackIncrementMs(1)
+            .setSeekForwardIncrementMs(1)
             .build()
 
         val mediaSource = buildMediaSource(endpoint)

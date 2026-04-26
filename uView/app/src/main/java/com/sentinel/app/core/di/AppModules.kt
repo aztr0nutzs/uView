@@ -177,6 +177,13 @@ object PlaybackModule {
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     @Provides
     @Singleton
+    fun provideCameraPlaybackServiceInterface(
+        playbackService: com.sentinel.app.data.playback.CameraPlaybackServiceImpl
+    ): com.sentinel.app.domain.service.CameraPlaybackService = playbackService
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    @Provides
+    @Singleton
     fun provideSnapshotController(
         @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context,
         mjpegRegistry: com.sentinel.app.data.playback.MjpegSessionRegistry,

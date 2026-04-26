@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -166,8 +167,7 @@ class MainActivity : FragmentActivity() {
                             color = TextSecondary
                         )
                     }
-                    // Close after a brief pause so the user sees the locked state
-                    scope.launch {
+                    LaunchedEffect(Unit) {
                         kotlinx.coroutines.delay(2000)
                         finish()
                     }

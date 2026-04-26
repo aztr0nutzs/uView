@@ -242,7 +242,6 @@ private fun StepSelectType(state: AddCameraUiState, vm: AddCameraViewModel) {
             types = listOf(
                 CameraSourceType.RTSP,
                 CameraSourceType.MJPEG,
-                CameraSourceType.ONVIF,
                 CameraSourceType.HLS
             )
         ),
@@ -253,7 +252,6 @@ private fun StepSelectType(state: AddCameraUiState, vm: AddCameraViewModel) {
             types = listOf(
                 CameraSourceType.ANDROID_IPWEBCAM,
                 CameraSourceType.ANDROID_DROIDCAM,
-                CameraSourceType.ANDROID_ALFRED,
                 CameraSourceType.ANDROID_CUSTOM
             )
         ),
@@ -262,8 +260,7 @@ private fun StepSelectType(state: AddCameraUiState, vm: AddCameraViewModel) {
             codename = "PROTOCOL_CLASS_X",
             accent = GreenOnline,
             types = listOf(
-                CameraSourceType.GENERIC_URL,
-                CameraSourceType.DEMO
+                CameraSourceType.GENERIC_URL
             )
         )
     )

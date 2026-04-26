@@ -52,9 +52,11 @@ class EventsViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), EventsUiState())
 
-    fun setCameraFilter(id: String?)         = _filters.update { it.copy(first = id) }
-    fun setEventTypeFilter(t: CameraEventType?) = _filters.update { it.copy(second = t) }
-    fun clearFilters()                        = _filters.value = Pair(null, null)
+    fun setCameraFilter(id: String?) = _filters.update { id to it.second }
+    fun setEventTypeFilter(t: CameraEventType?) = _filters.update { it.first to t }
+    fun clearFilters() {
+        _filters.value = Pair(null, null)
+    }
 
     fun markAllRead() = viewModelScope.launch { eventRepository.markAllAsRead() }
 

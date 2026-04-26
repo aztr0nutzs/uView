@@ -1,113 +1,149 @@
 # Build Verification Checklist
 
-This checklist is mandatory for contributor handoff. Do **not** claim build readiness without command receipts.
+This checklist is mandatory for contributor handoff. Do not claim build readiness
+without command receipts.
 
-## 1) Environment prerequisites (must be explicit)
+## 1) Local Prerequisites
 
-Required before compile tasks:
+Run commands from `uView/`.
 
-- JDK 17+ (project currently runs with JDK 21 in local receipt below).
-- Android SDK installed and reachable through **one** of:
-  - `local.properties` with `sdk.dir=/absolute/path/to/Android/Sdk`
+Required:
+
+- Windows PowerShell or Command Prompt for `gradlew.bat`, or a Unix shell for `./gradlew`.
+- JDK 17 or newer. Latest local receipt used Temurin JDK 21.0.10.
+- Android SDK configured through one of:
+  - `local.properties` with `sdk.dir=C:\\path\\to\\Android\\Sdk`
   - `ANDROID_HOME`
   - `ANDROID_SDK_ROOT`
-- Android platform packages required by app module (compileSdk 35 stack).
+- Android platform for compileSdk 35 installed.
+- Network access available the first time Gradle resolves dependencies.
 
-If SDK is missing, mark build status as **environment-blocked**, not app-code-failed.
+Local wrapper and build stack observed on 2026-04-26:
 
-## 2) Required wrapper/package files
+- OS: Windows 11 10.0 amd64
+- JVM: Eclipse Adoptium 21.0.10+7-LTS
+- Gradle wrapper: 8.6
+- Android Gradle Plugin: 8.4.0
+- Kotlin Gradle plugin: 1.9.22
+- compileSdk / targetSdk: 35
+
+Known warning:
+
+- Android Gradle Plugin 8.4.0 warns that it was tested up to compileSdk 34 while this project uses compileSdk 35. Debug compile, assembly, lint, and the unit-test task pass locally despite that warning.
+
+## 2) Required Wrapper And Package Files
+
+Verify from `uView/`:
+
+```powershell
+Test-Path .\gradlew
+Test-Path .\gradlew.bat
+Test-Path .\gradle\wrapper\gradle-wrapper.properties
+Test-Path .\gradle\wrapper\gradle-wrapper.jar
+Test-Path .\settings.gradle.kts
+Test-Path .\build.gradle.kts
+Test-Path .\app\build.gradle.kts
+Test-Path .\gradle\libs.versions.toml
+```
+
+Pass condition: every command returns `True` and files are non-empty.
+
+## 3) Baseline Gradle Integrity Checks
 
 Run from `uView/`:
 
-```bash
-ls -l gradlew gradlew.bat \
-      gradle/wrapper/gradle-wrapper.properties \
-      gradle/wrapper/gradle-wrapper.jar \
-      settings.gradle.kts build.gradle.kts \
-      app/build.gradle.kts gradle/libs.versions.toml
+```powershell
+.\gradlew.bat --version
+.\gradlew.bat :app:tasks --all
 ```
 
-Pass condition: all files present, readable, non-zero size.
+Pass condition: wrapper starts and the app task graph is listed.
 
-## 3) Baseline Gradle integrity checks
+## 4) Build Verification Commands
 
 Run from `uView/`:
 
-```bash
-bash ./gradlew --version
-bash ./gradlew :app:tasks --all
+```powershell
+.\gradlew.bat :app:compileDebugKotlin
+.\gradlew.bat :app:assembleDebug
+.\gradlew.bat :app:testDebugUnitTest
+.\gradlew.bat :app:lintDebug
 ```
 
-Pass condition: wrapper starts and task graph is listed.
+If a command fails, classify it:
 
-## 4) Build verification commands
+- Environment failure: missing SDK/JDK, unavailable emulator/device, invalid SDK path, or dependency resolution failure.
+- App-code failure: Kotlin/Java compile error, manifest merge/resource failure, test failure, or lint regression.
 
-Run from `uView/`:
-
-```bash
-bash ./gradlew :app:assembleDebug
-bash ./gradlew :app:testDebugUnitTest
-bash ./gradlew :app:lintDebug
-```
-
-If command fails, classify failure:
-
-- **Environment failure**: missing SDK/JDK, unavailable emulator/device, missing `local.properties`.
-- **App-code failure**: Kotlin/Java compile error, manifest merge/resource failure, test failure, lint regression.
-
-## 5) Manifest/resource integrity checks
+## 5) Manifest And Resource Checks
 
 From repository root:
 
-```bash
-rg -n "android:icon|android:roundIcon|MainActivity|CameraMonitorService|BootReceiver|FileProvider" \
-  uView/app/src/main/AndroidManifest.xml
+```powershell
+rg -n "android:icon|android:roundIcon|MainActivity|CameraMonitorService|BootReceiver|FileProvider" uView/app/src/main/AndroidManifest.xml
 ```
 
-Additionally confirm adaptive icon resource files exist:
+Adaptive icon resources that must remain present:
 
 - `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`
 - `app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`
 - `app/src/main/res/drawable/ic_launcher_foreground.xml`
 
-## 6) Settings truthfulness checks (mandatory)
+## 6) Settings Truthfulness Checks
 
-Manual validation on device/emulator:
+Manual validation on device or emulator:
 
 - No clickable no-op rows in Settings.
-- Any unwired settings row must be visibly unavailable/locked and non-clickable.
-- Privacy & Permissions must not navigate to a placeholder destination.
+- Unwired settings are hidden or displayed as read-only state.
+- Diagnostics is labeled as TCP reachability only.
+- Privacy/About rows do not navigate to placeholder destinations.
 
-## 7) Capability boundary checks (mandatory)
+## 7) Capability Boundary Checks
 
-- Do not claim ExoPlayer/RTSP recording support unless fully implemented end-to-end.
-- Current truthful boundary: MJPEG-backed recording available, ExoPlayer-backed recording unavailable.
+Mandatory release boundary:
 
-## 8) Latest local verification receipt (2026-04-23 UTC)
+- Do not claim ExoPlayer, RTSP, HLS, or generic HTTP recording support.
+- Current recording support is MJPEG-backed sessions only.
+- ONVIF profile setup, Alfred cloud relay ingest, and demo cameras are excluded from release setup.
 
-Environment observed:
+See `RELEASE_CAPABILITY_SUMMARY.md` for the exact capability table.
 
-- OS: Linux
-- JVM: 21.0.2
+## 8) Latest Local Verification Receipt
+
+Date: 2026-04-26
+
+Environment:
+
+- OS: Windows 11 10.0 amd64
+- JAVA_HOME: `C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot\`
+- JVM: Temurin 21.0.10+7-LTS
 - Gradle wrapper: 8.6
-- Android SDK: **not configured** in this container
 
 Commands and outcomes:
 
-```bash
-bash ./gradlew --version
-# PASS: Gradle 8.6, JVM 21.0.2
+```powershell
+.\gradlew.bat --version
+# PASS: Gradle 8.6, JVM 21.0.10, Windows 11 amd64
 
-bash ./gradlew :app:tasks --all
-# PASS: BUILD SUCCESSFUL, app tasks listed
+.\gradlew.bat :app:compileDebugKotlin
+# PASS
 
-bash ./gradlew :app:assembleDebug
-# BLOCKED (environment): SDK location not found
-# "Define a valid SDK location ... local.properties"
+.\gradlew.bat :app:assembleDebug
+# PASS
+
+.\gradlew.bat :app:testDebugUnitTest
+# PASS: task completed with NO-SOURCE
+
+.\gradlew.bat :app:lintDebug
+# PASS
+
+.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest
+# PASS: debug APK assembly passed; unit-test task completed with NO-SOURCE
 ```
 
-Conclusion:
+Receipt limits:
 
-- Wrapper + project wiring are verified.
-- APK assembly was **not** proven in this environment due to missing Android SDK path.
-- Do not mark this handoff as fully build-verified until `:app:assembleDebug` passes with SDK configured.
+- Debug APK assembly is proven locally.
+- Lint is proven locally.
+- Unit test task execution is proven, but no debug unit-test sources exist.
+- Signed release APK/AAB, emulator install, and physical camera smoke tests were not performed in this pass.

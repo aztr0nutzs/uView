@@ -164,14 +164,6 @@ private fun SettingsContent(
             // ── Stream & Playback ─────────────────────────────────────────
             item {
                 SectionCard(title = "Stream & Playback") {
-                    SettingsInfoRow(
-                        icon = Icons.Default.Videocam,
-                        title = "Default Stream Quality",
-                        subtitle = "Per-camera quality is active; global default override is not wired in this build",
-                        valueLabel = settings.defaultStreamQuality.label,
-                        availability = "UNAVAILABLE"
-                    )
-                    SettingsDivider()
                     SettingsToggleRow(
                         icon = Icons.Default.SignalCellularAlt,
                         title = "Data Saver Mode",
@@ -192,14 +184,6 @@ private fun SettingsContent(
                         checked = settings.notificationsEnabled,
                         onCheckedChange = onSetNotifications
                     )
-                    SettingsDivider()
-                    SettingsInfoRow(
-                        icon = Icons.Default.Settings,
-                        title = "Motion Sensitivity",
-                        subtitle = "Global sensitivity control is not connected; live motion uses per-session MEDIUM profile",
-                        valueLabel = settings.motionSensitivity.label,
-                        availability = "UNAVAILABLE"
-                    )
                 }
             }
 
@@ -213,22 +197,6 @@ private fun SettingsContent(
                         checked = settings.localOnlyMode,
                         onCheckedChange = onSetLocalOnly
                     )
-                    SettingsDivider()
-                    SettingsInfoRow(
-                        icon = Icons.Default.Radar,
-                        title = "Network Scan",
-                        subtitle = "LAN discovery runs only when launched from the scan screen; this preference toggle is not wired",
-                        valueLabel = if (settings.networkScanEnabled) "ON" else "OFF",
-                        availability = "ON_DEMAND_ONLY"
-                    )
-                    SettingsDivider()
-                    SettingsInfoRow(
-                        icon = Icons.Default.NetworkCheck,
-                        title = "Scan Subnet",
-                        subtitle = "Manual subnet override UI is not implemented yet",
-                        valueLabel = settings.networkScanSubnet.ifBlank { "Auto" },
-                        availability = "UNAVAILABLE"
-                    )
                 }
             }
 
@@ -241,14 +209,6 @@ private fun SettingsContent(
                         subtitle = "Custom folder picker is not wired; recordings use app-managed Movies/SentinelRecordings",
                         valueLabel = "APP MANAGED",
                         availability = "LOCKED"
-                    )
-                    SettingsDivider()
-                    SettingsInfoRow(
-                        icon = Icons.Default.Settings,
-                        title = "Event Retention",
-                        subtitle = "Retention pruning pipeline is not wired to this preference yet",
-                        valueLabel = "${settings.eventRetentionDays} days",
-                        availability = "UNAVAILABLE"
                     )
                 }
             }
@@ -265,16 +225,6 @@ private fun SettingsContent(
                             "Require authentication to access cameras",
                         checked = settings.appLockEnabled,
                         onCheckedChange = onSetAppLock,
-                        iconTint = WarningAmber,
-                        iconBg = WarningAmber.copy(alpha = 0.12f)
-                    )
-                    SettingsDivider()
-                    SettingsInfoRow(
-                        icon = Icons.Default.PrivacyTip,
-                        title = "Privacy & Permissions",
-                        subtitle = "Permission center is not implemented in this build",
-                        valueLabel = "PENDING",
-                        availability = "UNAVAILABLE",
                         iconTint = WarningAmber,
                         iconBg = WarningAmber.copy(alpha = 0.12f)
                     )

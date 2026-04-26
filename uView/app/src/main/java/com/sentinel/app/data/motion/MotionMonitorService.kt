@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
@@ -167,7 +168,7 @@ class MotionMonitorService @Inject constructor(
      * Observe motion events for a specific camera.
      */
     fun observeMotionForCamera(cameraId: String): Flow<MotionAnalysisResult> =
-        kotlinx.coroutines.flow.filter(motionEvents) { it.cameraId == cameraId }
+        motionEvents.filter { it.cameraId == cameraId }
 
     // ─────────────────────────────────────────────────────────────────────
     // Core frame processing
@@ -219,12 +220,4 @@ class MotionMonitorService @Inject constructor(
             com.sentinel.app.domain.model.CameraSourceType.ANDROID_IPWEBCAM,
             com.sentinel.app.domain.model.CameraSourceType.ANDROID_DROIDCAM
         )
-}
-
-// Helper extension — not available in Kotlin stdlib for SharedFlow
-private fun <T> kotlinx.coroutines.flow.filter(
-    flow: Flow<T>,
-    predicate: (T) -> Boolean
-): Flow<T> = kotlinx.coroutines.flow.flow {
-    flow.collect { if (predicate(it)) emit(it) }
 }
