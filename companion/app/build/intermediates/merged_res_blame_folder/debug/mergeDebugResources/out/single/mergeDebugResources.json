@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.sentinel.companion.app-debug-70:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.sentinel.companion.app-main-72:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.sentinel.companion.app-debug-70:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.sentinel.companion.app-main-72:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.sentinel.companion.app-debug-70:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.sentinel.companion.app-main-72:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]
