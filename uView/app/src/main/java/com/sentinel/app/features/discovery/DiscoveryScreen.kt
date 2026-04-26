@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Router
@@ -46,6 +47,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,14 +64,20 @@ import com.sentinel.app.domain.service.DiscoveryCapabilities
 import com.sentinel.app.ui.components.GhostButton
 import com.sentinel.app.ui.components.PrimaryButton
 import com.sentinel.app.ui.preview.SampleData
+import com.sentinel.app.ui.components.FastenerDots
 import com.sentinel.app.ui.theme.BackgroundDeep
 import com.sentinel.app.ui.theme.CyanPrimary
 import com.sentinel.app.ui.theme.CyanSubtle
+import com.sentinel.app.ui.theme.CyanTertiaryDim
+import com.sentinel.app.ui.theme.GreenOnline
+import com.sentinel.app.ui.theme.OrangePrimary
 import com.sentinel.app.ui.theme.SentinelTheme
 import com.sentinel.app.ui.theme.StatusOffline
 import com.sentinel.app.ui.theme.StatusOnline
+import com.sentinel.app.ui.theme.SurfaceBase
 import com.sentinel.app.ui.theme.SurfaceElevated
 import com.sentinel.app.ui.theme.SurfaceHighest
+import com.sentinel.app.ui.theme.SurfaceLowest
 import com.sentinel.app.ui.theme.SurfaceStroke
 import com.sentinel.app.ui.theme.TextDisabled
 import com.sentinel.app.ui.theme.TextPrimary
@@ -104,24 +113,55 @@ private fun DiscoveryContent(
 ) {
     Column(modifier = Modifier.fillMaxSize().background(BackgroundDeep)) {
 
-        // ── Top bar ───────────────────────────────────────────────────────
+        // ── Tactical top bar ──────────────────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(start = 4.dp, end = 8.dp, top = 12.dp, bottom = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(SurfaceLowest)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = TextPrimary)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(SurfaceHighest)
+                    .border(2.dp, OrangePrimary.copy(alpha = 0.35f))
+                    .clickable(onClick = onNavigateBack),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.ArrowBack, "Back", tint = OrangePrimary, modifier = Modifier.size(20.dp))
             }
-            Text(
-                "Network Discovery",
-                style    = MaterialTheme.typography.titleLarge,
-                color    = TextPrimary,
-                modifier = Modifier.weight(1f)
-            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "SENTINEL_HUB // NETWORK_RECON",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = FontStyle.Italic,
+                    color = OrangePrimary,
+                    letterSpacing = 1.6.sp
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    if (state.isScanning) "SWEEPING_LAN…"
+                    else "FIND_CAMERAS",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = FontStyle.Italic,
+                    color = TextPrimary,
+                    letterSpacing = (-0.2).sp
+                )
+            }
             if (state.isScanning) {
-                IconButton(onClick = onCancelScan) {
-                    Icon(Icons.Default.Close, "Cancel", tint = TextSecondary)
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(SurfaceHighest)
+                        .border(1.dp, StatusOffline.copy(alpha = 0.4f))
+                        .clickable(onClick = onCancelScan),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Close, "Cancel scan", tint = StatusOffline, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -176,15 +216,21 @@ private fun DiscoveryContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "${state.devices.size} device${if (state.devices.size != 1) "s" else ""} found",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary
+                            "RESULTS // ${state.devices.size}",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black,
+                            fontStyle = FontStyle.Italic,
+                            color = OrangePrimary,
+                            letterSpacing = 1.6.sp
                         )
                         if (!state.isScanning) {
                             Text(
-                                "Clear",
-                                style    = MaterialTheme.typography.labelSmall,
-                                color    = CyanPrimary,
+                                "CLEAR",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                fontStyle = FontStyle.Italic,
+                                color = CyanTertiaryDim,
+                                letterSpacing = 1.4.sp,
                                 modifier = Modifier.clickable(onClick = onClearResults)
                             )
                         }
@@ -213,40 +259,45 @@ private fun DiscoveryContent(
 @Composable
 private fun CapabilitiesBanner(caps: DiscoveryCapabilities) {
     val wifiOk = caps.wifiConnected
-    Column(
-        modifier = Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (wifiOk) CyanSubtle else StatusOffline.copy(alpha = 0.1f))
-            .border(1.dp,
-                if (wifiOk) CyanPrimary.copy(alpha = 0.2f) else StatusOffline.copy(alpha = 0.3f),
-                RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+    val accent = if (wifiOk) CyanTertiaryDim else StatusOffline
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceBase)
+            .border(1.dp, accent.copy(alpha = 0.35f))
+            .padding(start = 14.dp, end = 12.dp, top = 12.dp, bottom = 12.dp)
     ) {
-        if (!wifiOk) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Default.WifiOff, null, tint = StatusOffline, modifier = Modifier.size(16.dp))
-                Text("WiFi not connected — connect to your home network to scan",
-                    style = MaterialTheme.typography.bodySmall, color = StatusOffline)
-            }
-        } else {
-            Text(
-                "Scanning ${caps.detectedSubnet ?: "local network"}.0/24 using: " +
-                buildList {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (!wifiOk) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.WifiOff, null, tint = StatusOffline, modifier = Modifier.size(16.dp))
+                    Text(
+                        "Phone isn't on Wi-Fi yet. Hop onto the network your cameras live on, then come back.",
+                        style = MaterialTheme.typography.bodySmall, color = StatusOffline
+                    )
+                }
+            } else {
+                Text(
+                    "SUBNET // ${caps.detectedSubnet ?: "auto"}.0/24",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = FontStyle.Italic,
+                    color = CyanTertiaryDim,
+                    letterSpacing = 1.4.sp
+                )
+                val tools = buildList {
                     if (caps.arpTableReadable) add("ARP table")
                     if (caps.nsdAvailable)     add("mDNS")
-                    if (caps.multicastAvailable) add("ONVIF WS-Discovery")
-                    add("TCP probe")
-                }.joinToString(", "),
-                style = MaterialTheme.typography.bodySmall,
-                color = CyanPrimary.copy(alpha = 0.9f)
-            )
-            Text(
-                "Only devices on your local network are scanned. No data leaves your device.",
-                style = MaterialTheme.typography.labelSmall,
-                color = CyanPrimary.copy(alpha = 0.6f)
-            )
+                    if (caps.multicastAvailable) add("ONVIF discovery")
+                    add("TCP port probes")
+                }.joinToString(" · ")
+                Text(
+                    "We'll listen on $tools and only look at your local network. Nothing leaves your phone.",
+                    style = MaterialTheme.typography.bodySmall, color = TextSecondary
+                )
+            }
         }
+        FastenerDots(color = accent.copy(alpha = 0.35f))
     }
 }
 
@@ -290,7 +341,11 @@ private fun ScanPulseRow() {
     )
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Icon(Icons.Default.Radar, null, tint = CyanPrimary.copy(alpha = alpha), modifier = Modifier.size(18.dp))
-        Text("Scanning local network…", style = MaterialTheme.typography.bodySmall, color = CyanPrimary.copy(alpha = alpha))
+        Text(
+            "Sweeping the local network — hang tight…",
+            style = MaterialTheme.typography.bodySmall,
+            color = CyanPrimary.copy(alpha = alpha)
+        )
     }
 }
 
@@ -317,151 +372,487 @@ private fun StrategyChip(label: String, active: Boolean) {
 
 @Composable
 private fun ScanSummaryCard(state: DiscoveryUiState) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceElevated)
-            .border(1.dp, SurfaceStroke, RoundedCornerShape(12.dp))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    val count = state.devices.size
+    val cameraish = state.devices.count {
+        it.confidence == DiscoveryConfidence.CONFIRMED || it.confidence == DiscoveryConfidence.PROBABLE
+    }
+    val headline = when {
+        count == 0 -> "Sweep done — nothing answered."
+        cameraish == 0 -> "Sweep done — found $count device${if (count != 1) "s" else ""}, but none look like cameras."
+        cameraish == count -> "Sweep done — $count look${if (cameraish == 1) "s" else ""} like camera${if (cameraish != 1) "s" else ""}."
+        else -> "Sweep done — $count device${if (count != 1) "s" else ""}, $cameraish look${if (cameraish == 1) "s" else ""} like camera${if (cameraish != 1) "s" else ""}."
+    }
+    val accent = if (cameraish > 0) GreenOnline else if (count > 0) WarningAmber else TextDisabled
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceBase)
+            .border(1.dp, accent.copy(alpha = 0.4f))
+            .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 12.dp)
     ) {
-        Icon(Icons.Default.CheckCircle, null, tint = StatusOnline, modifier = Modifier.size(20.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                "Scan complete — ${state.devices.size} device${if (state.devices.size != 1) "s" else ""} found",
-                style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold
-            )
-            val strategies = state.activeStrategies.map { it.name.replace("_", " ").lowercase()
-                .replaceFirstChar { c -> c.uppercase() } }.joinToString(", ")
-            if (strategies.isNotEmpty()) {
-                Text("Via: $strategies", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(28.dp).background(accent.copy(alpha = 0.15f)).border(1.dp, accent.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.CheckCircle, null, tint = accent, modifier = Modifier.size(16.dp))
             }
-            if (state.scanDurationMs > 0) {
-                Text("Completed in ${state.scanDurationMs / 1000}s",
-                    style = MaterialTheme.typography.labelSmall, color = TextDisabled)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(headline, style = MaterialTheme.typography.bodyMedium,
+                    color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                val strategies = state.activeStrategies.joinToString(" · ") { it.shortLabel() }
+                val tail = buildList {
+                    if (state.scanDurationMs > 0) add("${state.scanDurationMs / 1000}s")
+                    if (strategies.isNotEmpty()) add(strategies)
+                }.joinToString(" · ")
+                if (tail.isNotEmpty()) {
+                    Text(tail, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                }
+                if (count == 0) {
+                    Text(
+                        "Either nothing's powered on, the cameras are on a different subnet, or they don't broadcast. Try Add Manually.",
+                        style = MaterialTheme.typography.labelSmall, color = TextSecondary
+                    )
+                }
+            }
+            state.errorMessage?.let {
+                Text(it, style = MaterialTheme.typography.labelSmall, color = StatusOffline)
             }
         }
-        state.errorMessage?.let {
-            Text(it, style = MaterialTheme.typography.labelSmall, color = StatusOffline)
-        }
+        FastenerDots(color = accent.copy(alpha = 0.35f))
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DiscoveredDeviceCard
+// DiscoveredDeviceCard — tactical device card with reasoning + next-step
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DiscoveredDeviceCard(device: DiscoveredDevice, onAddCamera: () -> Unit) {
     val icon = when (device.probableSourceType) {
         CameraSourceType.ANDROID_IPWEBCAM,
-        CameraSourceType.ANDROID_DROIDCAM  -> Icons.Default.PhoneAndroid
+        CameraSourceType.ANDROID_DROIDCAM,
+        CameraSourceType.ANDROID_ALFRED,
+        CameraSourceType.ANDROID_CUSTOM    -> Icons.Default.PhoneAndroid
         CameraSourceType.ONVIF             -> Icons.Default.Router
+        null                               -> if (device.confidence == DiscoveryConfidence.UNKNOWN)
+                                                  Icons.Default.HelpOutline
+                                              else Icons.Default.Videocam
         else                               -> Icons.Default.Videocam
     }
-    val confidenceColor = when (device.confidence) {
-        DiscoveryConfidence.CONFIRMED -> StatusOnline
-        DiscoveryConfidence.PROBABLE  -> CyanPrimary
+    val accent = when (device.confidence) {
+        DiscoveryConfidence.CONFIRMED -> GreenOnline
+        DiscoveryConfidence.PROBABLE  -> CyanTertiaryDim
         DiscoveryConfidence.POSSIBLE  -> WarningAmber
         DiscoveryConfidence.UNKNOWN   -> TextDisabled
     }
+    val headline = device.classifyHeadline()
+    val reasonLine = device.classifyReason()
+    val nextStep = device.nextStepHint()
+    val protoLine = device.protocolLine()
+    val hostLine = device.hostLine()
+    val reachable = device.openPorts.isNotEmpty() ||
+        device.discoveryMethod == DiscoveryMethod.ONVIF_WS_DISCOVERY ||
+        device.discoveryMethod == DiscoveryMethod.MDNS
 
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(SurfaceElevated)
-            .border(1.dp, SurfaceStroke, RoundedCornerShape(14.dp))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (device.isAlreadyAdded) SurfaceElevated.copy(alpha = 0.6f) else SurfaceBase)
+            .border(1.dp, accent.copy(alpha = if (device.isAlreadyAdded) 0.25f else 0.45f))
     ) {
-        // Icon
-        Box(
-            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(CyanSubtle),
-            contentAlignment = Alignment.Center
-        ) { Icon(icon, null, tint = CyanPrimary, modifier = Modifier.size(22.dp)) }
-        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
-        // Details
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(
-                device.hostname ?: device.ipAddress,
-                style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold,
-                maxLines = 1, overflow = TextOverflow.Ellipsis
-            )
-            if (device.hostname != null) {
-                Text(device.ipAddress, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-            }
-            // Badges row
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                // Confidence
-                item {
-                    Badge(device.confidence.name.lowercase().replaceFirstChar { it.uppercase() }, confidenceColor)
+            // ── Top row: icon + headline + add/added action ───────────────
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(SurfaceLowest)
+                        .border(1.5.dp, accent.copy(alpha = if (device.isAlreadyAdded) 0.35f else 0.6f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, null, tint = accent, modifier = Modifier.size(22.dp))
                 }
-                // Discovery method
-                item {
-                    Badge(device.discoveryMethod.name.replace("_", " ").lowercase()
-                        .replaceFirstChar { it.uppercase() }, TextDisabled)
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(
+                        headline.uppercase(),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic,
+                        color = if (device.isAlreadyAdded) TextSecondary else TextPrimary,
+                        letterSpacing = 0.3.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        hostLine,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-                // Source type
-                device.probableSourceType?.let { item { Badge(it.displayName, CyanPrimary.copy(alpha = 0.7f)) } }
-                // MAC vendor
-                device.macVendor?.let { item { Badge(it, TextSecondary) } }
-                // Manufacturer from ONVIF
-                device.onvifManufacturer?.let { item { Badge(it, StatusOnline.copy(alpha = 0.8f)) } }
-                // Open ports
-                device.openPorts.take(3).forEach { port -> item { Badge(":$port", TextDisabled) } }
+                if (device.isAlreadyAdded) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.CheckCircle, null, tint = StatusOnline.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
+                        Text("In list", color = StatusOnline.copy(alpha = 0.7f),
+                            fontSize = 9.sp, fontWeight = FontWeight.Black, fontStyle = FontStyle.Italic, letterSpacing = 0.6.sp)
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .background(accent.copy(alpha = 0.12f))
+                            .border(1.dp, accent.copy(alpha = 0.55f))
+                            .clickable(onClick = onAddCamera)
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                    ) {
+                        Text(
+                            "ADD",
+                            color = accent,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black,
+                            fontStyle = FontStyle.Italic,
+                            letterSpacing = 1.2.sp
+                        )
+                    }
+                }
             }
-            device.banner?.let {
-                Text(it, style = MaterialTheme.typography.labelSmall, color = TextDisabled,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
 
-        Spacer(Modifier.width(8.dp))
-
-        // Add / Already Added
-        if (device.isAlreadyAdded) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.CheckCircle, null, tint = StatusOnline, modifier = Modifier.size(18.dp))
-                Text("Added", style = MaterialTheme.typography.labelSmall, color = StatusOnline, fontSize = 9.sp)
-            }
-        } else {
-            Box(
-                modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(CyanSubtle)
-                    .border(1.dp, CyanPrimary.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
-                    .clickable(onClick = onAddCamera).padding(horizontal = 12.dp, vertical = 7.dp)
+            // ── Confidence + reachability ribbon ──────────────────────────
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Add", style = MaterialTheme.typography.labelMedium,
-                    color = CyanPrimary, fontWeight = FontWeight.SemiBold)
+                ConfidencePill(device.confidence, accent)
+                ReachabilityPill(reachable)
+                device.discoveryMethod.takeIf { it != DiscoveryMethod.MANUAL }?.let {
+                    DetailChip(it.shortLabel(), TextDisabled)
+                }
             }
+
+            // ── Protocol / port readout ───────────────────────────────────
+            if (protoLine.isNotEmpty()) {
+                Text(
+                    protoLine,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            // ── Reasoning: WHY we think this ──────────────────────────────
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    "WHY",
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = FontStyle.Italic,
+                    color = accent.copy(alpha = 0.8f),
+                    letterSpacing = 1.4.sp
+                )
+                Text(
+                    reasonLine,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    lineHeight = 16.sp
+                )
+            }
+
+            // ── What to do next ───────────────────────────────────────────
+            nextStep?.let {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        "NEXT",
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic,
+                        color = OrangePrimary.copy(alpha = 0.85f),
+                        letterSpacing = 1.4.sp
+                    )
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextPrimary,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
+
+            device.banner?.takeIf { it.isNotBlank() }?.let { banner ->
+                Text(
+                    "Banner: \"$banner\"",
+                    fontSize = 10.sp,
+                    color = TextDisabled,
+                    fontStyle = FontStyle.Italic,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            // Bottom signal stripe
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (device.isAlreadyAdded) 1.dp else 2.dp)
+                    .background(accent.copy(alpha = if (device.isAlreadyAdded) 0.3f else 0.7f))
+            )
         }
+        FastenerDots(color = accent.copy(alpha = if (device.isAlreadyAdded) 0.2f else 0.45f))
     }
 }
 
 @Composable
-private fun Badge(label: String, color: androidx.compose.ui.graphics.Color) {
+private fun ConfidencePill(level: DiscoveryConfidence, accent: Color) {
+    val text = when (level) {
+        DiscoveryConfidence.CONFIRMED -> "CONFIRMED"
+        DiscoveryConfidence.PROBABLE  -> "LIKELY"
+        DiscoveryConfidence.POSSIBLE  -> "MAYBE"
+        DiscoveryConfidence.UNKNOWN   -> "UNCLEAR"
+    }
     Box(
-        modifier = Modifier.clip(RoundedCornerShape(6.dp))
-            .background(color.copy(alpha = 0.12f))
+        modifier = Modifier
+            .background(accent.copy(alpha = 0.15f))
+            .border(1.dp, accent.copy(alpha = 0.55f))
             .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = color, fontSize = 9.sp)
+        Text(
+            text,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Black,
+            fontStyle = FontStyle.Italic,
+            color = accent,
+            letterSpacing = 1.sp
+        )
+    }
+}
+
+@Composable
+private fun ReachabilityPill(reachable: Boolean) {
+    val color = if (reachable) GreenOnline else WarningAmber
+    val text = if (reachable) "REACHABLE" else "NO_RESPONSE"
+    Row(
+        modifier = Modifier
+            .background(color.copy(alpha = 0.10f))
+            .border(1.dp, color.copy(alpha = 0.5f))
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Box(Modifier.size(5.dp).clip(CircleShape).background(color))
+        Text(
+            text,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Black,
+            fontStyle = FontStyle.Italic,
+            color = color,
+            letterSpacing = 1.sp
+        )
+    }
+}
+
+@Composable
+private fun DetailChip(label: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .background(color.copy(alpha = 0.10f))
+            .border(1.dp, color.copy(alpha = 0.4f))
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    ) {
+        Text(
+            label,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            color = color,
+            letterSpacing = 0.6.sp
+        )
     }
 }
 
 @Composable
 private fun ScanIdlePrompt() {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceBase)
+            .border(1.dp, CyanTertiaryDim.copy(alpha = 0.25f))
+            .padding(vertical = 36.dp, horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(Icons.Default.Radar, null, tint = TextDisabled, modifier = Modifier.size(56.dp))
-        Text("Tap Start Scan to search your LAN", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-        Text("Uses ARP table + mDNS + ONVIF WS-Discovery + TCP probe",
-            style = MaterialTheme.typography.labelSmall, color = TextDisabled)
+        Icon(Icons.Default.Radar, null, tint = OrangePrimary.copy(alpha = 0.7f), modifier = Modifier.size(48.dp))
+        Text(
+            "READY TO SWEEP",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Black,
+            fontStyle = FontStyle.Italic,
+            color = TextPrimary,
+            letterSpacing = 1.2.sp
+        )
+        Text(
+            "Hit Start Scan and we'll look for cameras on your local network.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary
+        )
+        Text(
+            "We listen for ONVIF chatter, mDNS broadcasts, and known camera ports (RTSP, DroidCam, IP Webcam, etc.). Nothing leaves your phone.",
+            fontSize = 11.sp,
+            color = TextDisabled,
+            lineHeight = 15.sp
+        )
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Classification + copy helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+private fun DiscoveredDevice.hostLine(): String {
+    val name = hostname?.takeIf { it.isNotBlank() && it != ipAddress }
+    return if (name != null) "$name · $ipAddress" else ipAddress
+}
+
+private fun DiscoveredDevice.classifyHeadline(): String = when (confidence) {
+    DiscoveryConfidence.CONFIRMED -> when {
+        discoveryMethod == DiscoveryMethod.ONVIF_WS_DISCOVERY -> {
+            val brand = onvifManufacturer?.trim()?.takeIf { it.isNotEmpty() }
+            val model = onvifModel?.trim()?.takeIf { it.isNotEmpty() }
+            when {
+                brand != null && model != null -> "ONVIF camera · $brand $model"
+                brand != null                  -> "ONVIF camera · $brand"
+                else                           -> "ONVIF camera"
+            }
+        }
+        probableSourceType == CameraSourceType.ANDROID_IPWEBCAM -> "Phone running IP Webcam"
+        probableSourceType == CameraSourceType.ANDROID_DROIDCAM -> "Phone running DroidCam"
+        else -> "Camera detected"
+    }
+    DiscoveryConfidence.PROBABLE -> when (probableSourceType) {
+        CameraSourceType.RTSP, CameraSourceType.ONVIF -> "Looks like an IP camera"
+        CameraSourceType.MJPEG                        -> "Looks like an MJPEG camera"
+        CameraSourceType.HLS                          -> "Looks like an HLS source"
+        CameraSourceType.ANDROID_IPWEBCAM,
+        CameraSourceType.ANDROID_DROIDCAM,
+        CameraSourceType.ANDROID_ALFRED,
+        CameraSourceType.ANDROID_CUSTOM               -> "Looks like a phone running a camera app"
+        else                                          -> "Probably a camera"
+    }
+    DiscoveryConfidence.POSSIBLE -> when (probableSourceType) {
+        null -> "Could be a camera"
+        else -> "Maybe a ${probableSourceType.displayName.lowercase()}"
+    }
+    DiscoveryConfidence.UNKNOWN -> macVendor?.let { "Unknown $it device" } ?: "Unidentified device"
+}
+
+private fun DiscoveredDevice.classifyReason(): String {
+    val bits = mutableListOf<String>()
+    when (discoveryMethod) {
+        DiscoveryMethod.ONVIF_WS_DISCOVERY -> bits += "answered ONVIF discovery (a real ONVIF camera responds to this)"
+        DiscoveryMethod.MDNS -> bits += mdnsServiceName
+            ?.let { "broadcasting \"$it\" over mDNS" }
+            ?: "advertised itself over mDNS"
+        DiscoveryMethod.ARP_TABLE -> bits += "shows up on the ARP table (so it's alive on the LAN)"
+        DiscoveryMethod.TCP_PORT_PROBE -> bits += "answered a TCP probe"
+        DiscoveryMethod.MANUAL -> {}
+    }
+    val cameraPorts = openPorts.filter {
+        it in setOf(554, 4747, 8080, 8081, 8554, 1935, 37777, 80, 443, 8443)
+    }
+    if (cameraPorts.isNotEmpty()) {
+        val portNames = cameraPorts.take(4).joinToString(", ") { it.portLabel() }
+        bits += "open ports: $portNames"
+    } else if (openPorts.isNotEmpty()) {
+        bits += "open ports: ${openPorts.take(3).joinToString(",") { it.toString() }}"
+    }
+    onvifModel?.takeIf { it.isNotBlank() && discoveryMethod != DiscoveryMethod.ONVIF_WS_DISCOVERY }?.let {
+        bits += "model $it"
+    }
+    macVendor?.let {
+        bits += "MAC vendor looks like $it"
+    }
+    val bannerHint = banner?.takeIf { it.isNotBlank() }?.let { b ->
+        when {
+            b.contains("rtsp", ignoreCase = true)    -> "RTSP banner on the wire"
+            b.contains("droidcam", ignoreCase = true) -> "banner says DroidCam"
+            b.contains("ipwebcam", ignoreCase = true) ||
+            b.contains("ip webcam", ignoreCase = true) -> "banner mentions IP Webcam"
+            b.contains("hikvision", ignoreCase = true) -> "Hikvision banner"
+            b.contains("dahua", ignoreCase = true)    -> "Dahua banner"
+            b.contains("axis", ignoreCase = true)     -> "Axis banner"
+            else -> "banner: \"${b.take(40)}${if (b.length > 40) "…" else ""}\""
+        }
+    }
+    bannerHint?.let { bits += it }
+    return bits.joinToString(" · ").ifEmpty {
+        "We caught it on the network but can't tell what it is yet."
+    }
+}
+
+private fun DiscoveredDevice.nextStepHint(): String? {
+    if (isAlreadyAdded) return "Already in your camera list — no action needed."
+    return when (confidence) {
+        DiscoveryConfidence.CONFIRMED -> when (discoveryMethod) {
+            DiscoveryMethod.ONVIF_WS_DISCOVERY ->
+                "Tap Add — we'll wire it up as ONVIF. You'll just need the camera's username and password."
+            DiscoveryMethod.MDNS ->
+                "Tap Add — we'll prefill the host and port. No stream confirmed yet, but the broadcast looks legit."
+            else ->
+                "Tap Add to set this up. We'll prefill what we know."
+        }
+        DiscoveryConfidence.PROBABLE ->
+            "Tap Add and we'll prefill ${ipAddress}${if (port > 0) ":$port" else ""}. You may need credentials before the stream connects."
+        DiscoveryConfidence.POSSIBLE ->
+            "Could be a camera, could be something else. No stream detected yet — tap Add to try, or skip it."
+        DiscoveryConfidence.UNKNOWN ->
+            "Probably not a camera. Add manually only if you know exactly what this is."
+    }
+}
+
+private fun DiscoveredDevice.protocolLine(): String {
+    val parts = mutableListOf<String>()
+    val type = probableSourceType?.let { type ->
+        when (type) {
+            CameraSourceType.RTSP, CameraSourceType.ONVIF -> "RTSP"
+            CameraSourceType.MJPEG -> "MJPEG/HTTP"
+            CameraSourceType.HLS   -> "HLS"
+            CameraSourceType.ANDROID_DROIDCAM -> "DroidCam"
+            CameraSourceType.ANDROID_IPWEBCAM -> "IP Webcam"
+            CameraSourceType.ANDROID_ALFRED   -> "Alfred"
+            CameraSourceType.ANDROID_CUSTOM   -> "Phone (custom)"
+            else -> null
+        }
+    }
+    if (type != null) parts += type
+    if (port > 0) parts += "port $port"
+    return if (parts.isNotEmpty()) "Protocol: ${parts.joinToString(" · ")}" else ""
+}
+
+private fun Int.portLabel(): String = when (this) {
+    554   -> "RTSP/554"
+    8554  -> "RTSP/8554"
+    4747  -> "DroidCam/4747"
+    8080  -> "HTTP/8080"
+    8081  -> "HTTP/8081"
+    1935  -> "RTMP/1935"
+    37777 -> "Dahua/37777"
+    80    -> "HTTP/80"
+    443   -> "HTTPS/443"
+    8443  -> "HTTPS/8443"
+    else  -> ":$this"
+}
+
+private fun DiscoveryMethod.shortLabel(): String = when (this) {
+    DiscoveryMethod.ARP_TABLE          -> "ARP"
+    DiscoveryMethod.MDNS               -> "mDNS"
+    DiscoveryMethod.ONVIF_WS_DISCOVERY -> "ONVIF"
+    DiscoveryMethod.TCP_PORT_PROBE     -> "TCP probe"
+    DiscoveryMethod.MANUAL             -> "manual"
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF060B10)
