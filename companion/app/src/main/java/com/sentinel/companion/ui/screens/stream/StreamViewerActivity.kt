@@ -22,13 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Screenshot
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.res.painterResource
+import com.sentinel.companion.R
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -350,12 +349,11 @@ private fun StreamViewerScreen(
                     }
 
                     Spacer(Modifier.width(8.dp))
-                    Icon(
-                        Icons.Filled.Settings,
+                    Image(
+                        painter = painterResource(R.drawable.settings),
                         contentDescription = "Settings",
-                        tint     = TextSecondary,
                         modifier = Modifier
-                            .size(20.dp)
+                            .size(24.dp)
                             .clickable(onClick = onSettings),
                     )
                 }

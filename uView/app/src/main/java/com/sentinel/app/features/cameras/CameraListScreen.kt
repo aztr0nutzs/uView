@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,8 @@ import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
+import androidx.compose.ui.res.painterResource
+import com.sentinel.app.R
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -135,7 +138,7 @@ fun CameraListScreen(
                     .border(2.dp, OrangePrimary.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Videocam, null, tint = OrangePrimary, modifier = Modifier.size(22.dp))
+                Image(painterResource(R.drawable.uview_icon), contentDescription = null, modifier = Modifier.size(36.dp))
             }
             Spacer(Modifier.width(12.dp))
             Text(
@@ -171,7 +174,7 @@ fun CameraListScreen(
             Icon(Icons.Default.BatteryChargingFull, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = onNavigateAddCamera, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Default.Add, "Add camera", tint = CyanTertiaryDim)
+                Image(painterResource(R.drawable.add_cam), contentDescription = "Add camera", modifier = Modifier.size(28.dp))
             }
         }
 
@@ -447,7 +450,7 @@ private fun TacticalCameraRow(
                 )
                 DropdownMenuItem(
                     text = { Text("Delete", color = ErrorRed, fontSize = 13.sp) },
-                    leadingIcon = { Icon(Icons.Default.Delete, null, tint = ErrorRed) },
+                    leadingIcon = { Image(painterResource(R.drawable.delete_cam), null, modifier = Modifier.size(24.dp)) },
                     onClick     = { menuOpen = false; onDelete() }
                 )
             }

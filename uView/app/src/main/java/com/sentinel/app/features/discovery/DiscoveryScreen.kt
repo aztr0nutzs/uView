@@ -37,6 +37,9 @@ import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.sentinel.app.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -692,7 +695,7 @@ private fun ScanIdlePrompt() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(Icons.Default.Radar, null, tint = OrangePrimary.copy(alpha = 0.7f), modifier = Modifier.size(48.dp))
+        Image(painterResource(R.drawable.net_config), contentDescription = null, modifier = Modifier.size(64.dp))
         Text(
             "READY FOR LAN SCAN",
             fontSize = 13.sp,

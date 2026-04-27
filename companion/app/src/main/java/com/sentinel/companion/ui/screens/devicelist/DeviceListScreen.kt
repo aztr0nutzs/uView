@@ -20,15 +20,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.res.painterResource
+import com.sentinel.companion.R
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -96,11 +95,10 @@ fun DeviceListScreen(
                         .clickable(onClick = onAddDevice),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
-                        Icons.Filled.Add,
+                    Image(
+                        painter = painterResource(R.drawable.add_cam),
                         contentDescription = "Add Device",
-                        tint     = androidx.compose.ui.graphics.Color.White,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             },
@@ -264,11 +262,10 @@ private fun DeviceRow(
                 .background(SurfaceHighest),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                Icons.Filled.PlayArrow,
+            Image(
+                painter = painterResource(R.drawable.live_view),
                 contentDescription = null,
-                tint     = if (device.isEnabled) OrangePrimary else TextDisabled,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(40.dp),
             )
         }
 
@@ -353,20 +350,18 @@ private fun DeviceRow(
                         .size(16.dp)
                         .clickable(onClick = onReconnect),
                 )
-                Icon(
-                    Icons.Filled.Settings,
+                Image(
+                    painter = painterResource(R.drawable.settings),
                     contentDescription = "Settings",
-                    tint     = TextSecondary,
                     modifier = Modifier
-                        .size(16.dp)
+                        .size(20.dp)
                         .clickable(onClick = onSettings),
                 )
-                Icon(
-                    Icons.Filled.Delete,
+                Image(
+                    painter = painterResource(R.drawable.delete_cam),
                     contentDescription = "Delete",
-                    tint     = ErrorRed.copy(alpha = 0.7f),
                     modifier = Modifier
-                        .size(16.dp)
+                        .size(20.dp)
                         .clickable(onClick = onDelete),
                 )
             }

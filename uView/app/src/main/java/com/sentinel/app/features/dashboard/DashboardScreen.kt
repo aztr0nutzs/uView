@@ -23,19 +23,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.PersonPin
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.ui.res.painterResource
+import com.sentinel.app.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -327,7 +326,7 @@ private fun TacticalHubTopBar(
             )
         }
         IconButton(onClick = onNotificationsClick, modifier = Modifier.size(36.dp)) {
-            Icon(if (unreadEvents > 0) Icons.Default.Notifications else Icons.Default.NotificationsNone, null, tint = OrangePrimary)
+            Image(painterResource(R.drawable.alerts), contentDescription = "Events", modifier = Modifier.size(28.dp))
         }
         IconButton(onClick = onSettingsClick, modifier = Modifier.size(36.dp)) {
             Icon(Icons.Default.BatteryAlert, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
@@ -488,10 +487,10 @@ private fun DashboardTopBar(
         // Notification bell with unread badge
         Box {
             IconButton(onClick = onNotificationsClick) {
-                Icon(
-                    imageVector = if (unreadEvents > 0) Icons.Default.Notifications else Icons.Default.NotificationsNone,
+                Image(
+                    painter = painterResource(R.drawable.alerts),
                     contentDescription = "Events",
-                    tint = if (unreadEvents > 0) CyanPrimary else TextSecondary
+                    modifier = Modifier.size(24.dp),
                 )
             }
             if (unreadEvents > 0) {
@@ -514,7 +513,7 @@ private fun DashboardTopBar(
             }
         }
         IconButton(onClick = onSettingsClick) {
-            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = TextSecondary)
+            Image(painterResource(R.drawable.settings), contentDescription = "Settings", modifier = Modifier.size(24.dp))
         }
     }
 }
@@ -603,26 +602,26 @@ private fun QuickActionsRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         QuickActionButton(
-            icon = Icons.Default.Add,
+            iconRes = R.drawable.add_cam,
             label = "Add Camera",
             onClick = onAddCamera,
             highlight = true,
             modifier = Modifier.weight(1f)
         )
         QuickActionButton(
-            icon = Icons.Default.Radar,
+            iconRes = R.drawable.net_config,
             label = "Scan",
             onClick = onScanNetwork,
             modifier = Modifier.weight(1f)
         )
         QuickActionButton(
-            icon = Icons.Default.GridView,
+            iconRes = R.drawable.live_view,
             label = "Multi-View",
             onClick = onMultiView,
             modifier = Modifier.weight(1f)
         )
         QuickActionButton(
-            icon = Icons.Default.Timeline,
+            iconRes = R.drawable.alerts,
             label = "Events",
             onClick = onEvents,
             modifier = Modifier.weight(1f)
@@ -632,7 +631,7 @@ private fun QuickActionsRow(
 
 @Composable
 private fun QuickActionButton(
-    icon: ImageVector,
+    @DrawableRes iconRes: Int,
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -657,11 +656,10 @@ private fun QuickActionButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Icon(
-            imageVector = icon,
+        Image(
+            painter = painterResource(iconRes),
             contentDescription = label,
-            tint = if (highlight) SurfaceLowest else CyanPrimary,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(28.dp)
         )
         Text(
             text = label.uppercase().replace(" ", "_"),
@@ -691,11 +689,10 @@ private fun StorageStatusCard(summary: DashboardSummary, modifier: Modifier = Mo
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.PhotoCamera,
+                Image(
+                    painter = painterResource(R.drawable.snapshot),
                     contentDescription = null,
-                    tint = CyanPrimary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(22.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(

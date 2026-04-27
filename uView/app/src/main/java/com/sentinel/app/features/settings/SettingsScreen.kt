@@ -43,8 +43,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import com.sentinel.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -178,11 +181,12 @@ private fun SettingsContent(
             item {
                 SectionCard(title = "Notifications") {
                     SettingsToggleRow(
-                        icon = Icons.Default.Notifications,
+                        icon = painterResource(R.drawable.alerts),
                         title = "Push Notifications",
                         subtitle = "Alerts for motion, connection changes",
                         checked = settings.notificationsEnabled,
-                        onCheckedChange = onSetNotifications
+                        onCheckedChange = onSetNotifications,
+                        iconTint = Color.Unspecified,
                     )
                 }
             }
@@ -269,7 +273,8 @@ private fun SettingsContent(
                     )
                     SettingsDivider()
                     SettingsNavRow(
-                        icon = Icons.Default.NetworkCheck,
+                        icon = painterResource(R.drawable.net_config),
+                        iconTint = Color.Unspecified,
                         title = "Diagnostics",
                         subtitle = "Run TCP reachability checks; stream decode and credentials are not tested",
                         onClick = onNavigateDiagnostics
@@ -281,7 +286,8 @@ private fun SettingsContent(
             item {
                 SectionCard(title = "About") {
                     SettingsInfoRow(
-                        icon = Icons.Default.Info,
+                        icon = painterResource(R.drawable.uview_icon),
+                        iconTint = Color.Unspecified,
                         title = "Sentinel Home",
                         subtitle = "Version 1.0.0 — Personal camera hub",
                         valueLabel = "INFO",
@@ -315,6 +321,27 @@ private fun SettingsInfoRow(
     iconTint: androidx.compose.ui.graphics.Color = TextDisabled,
     iconBg: androidx.compose.ui.graphics.Color = CyanSubtle.copy(alpha = 0.55f)
 ) {
+    SettingsInfoRow(
+        icon = androidx.compose.ui.graphics.vector.rememberVectorPainter(icon),
+        title = title,
+        subtitle = subtitle,
+        valueLabel = valueLabel,
+        availability = availability,
+        iconTint = iconTint,
+        iconBg = iconBg,
+    )
+}
+
+@Composable
+private fun SettingsInfoRow(
+    icon: androidx.compose.ui.graphics.painter.Painter,
+    title: String,
+    subtitle: String,
+    valueLabel: String? = null,
+    availability: String? = null,
+    iconTint: androidx.compose.ui.graphics.Color = TextDisabled,
+    iconBg: androidx.compose.ui.graphics.Color = CyanSubtle.copy(alpha = 0.55f)
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -328,7 +355,7 @@ private fun SettingsInfoRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                painter = icon,
                 contentDescription = null,
                 tint = iconTint
             )
