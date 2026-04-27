@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -564,6 +567,46 @@ fun SettingsRow(
             contentAlignment = Alignment.Center,
         ) {
             Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            if (subtitle != null) {
+                Text(subtitle, color = TextSecondary, fontSize = 12.sp)
+            }
+        }
+        if (trailing != null) trailing()
+    }
+}
+
+@Composable
+fun SettingsRow(
+    @DrawableRes iconRes: Int,
+    title: String,
+    subtitle: String? = null,
+    modifier: Modifier = Modifier,
+    accent: Color = OrangePrimary,
+    trailing: @Composable (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .let { if (onClick != null) it.clickable(onClick = onClick) else it }
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .background(accent.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+            )
         }
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

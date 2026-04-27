@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.sentinel.app.R
 import androidx.compose.ui.text.font.FontStyle
@@ -561,9 +562,9 @@ private fun TacticalActionStrip(
     onSettings: () -> Unit
 ) {
     val actions = listOf(
-        ActionSpec(icon = Icons.Default.CameraAlt, label = if (isTakingSnapshot) "CAPTURING" else "SNAPSHOT", color = CyanTertiaryDim, active = false, pulse = false, onClick = onSnapshot),
+        ActionSpec(iconRes = R.drawable.snapshot, label = if (isTakingSnapshot) "CAPTURING" else "SNAPSHOT", color = CyanTertiaryDim, active = false, pulse = false, onClick = onSnapshot),
         ActionSpec(
-            icon = Icons.Default.FiberManualRecord,
+            iconRes = R.drawable.record,
             label = when {
                 isRecording -> "RECORDING"
                 isRecordingSupported -> "RECORD"
@@ -579,7 +580,7 @@ private fun TacticalActionStrip(
         ActionSpec(icon = Icons.Default.Sync, label = "RECONNECT", color = GreenOnline, active = false, pulse = false, onClick = onReconnect),
         ActionSpec(icon = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp, label = if (isMuted) "UNMUTE" else "MUTE", color = TextPrimary, active = false, pulse = false, onClick = onMute),
         ActionSpec(icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, label = "FAVORITE", color = OrangePrimary, active = isFavorite, pulse = false, onClick = onFavorite),
-        ActionSpec(icon = Icons.Default.Settings, label = "SETTINGS", color = TextPrimary, active = false, pulse = false, onClick = onSettings)
+        ActionSpec(iconRes = R.drawable.settings, label = "SETTINGS", color = TextPrimary, active = false, pulse = false, onClick = onSettings)
     )
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
@@ -628,7 +629,15 @@ private fun TacticalStripButton(action: ActionSpec, modifier: Modifier = Modifie
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(action.icon, action.label, tint = action.color, modifier = Modifier.size(23.dp))
+        if (action.iconRes != null) {
+            Image(
+                painter = painterResource(action.iconRes),
+                contentDescription = action.label,
+                modifier = Modifier.size(28.dp),
+            )
+        } else if (action.icon != null) {
+            Icon(action.icon, action.label, tint = action.color, modifier = Modifier.size(23.dp))
+        }
         Spacer(Modifier.height(6.dp))
         HudText(
             text = action.label,
@@ -919,7 +928,8 @@ private fun Modifier.mechanicalFeedFrame(): Modifier = this
 private data class MetricValue(val text: String, val isUnavailable: Boolean = false)
 
 private data class ActionSpec(
-    val icon: ImageVector,
+    val icon: ImageVector? = null,
+    val iconRes: Int? = null,
     val label: String,
     val color: Color,
     val active: Boolean,

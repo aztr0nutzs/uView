@@ -20,13 +20,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.NetworkCheck
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
+import androidx.compose.ui.res.painterResource
+import com.sentinel.companion.R
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -122,12 +122,11 @@ fun DashboardScreen(
                             }
                         }
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Notifications,
+                        Image(
+                            painter = painterResource(R.drawable.alerts),
                             contentDescription = "Alerts",
-                            tint = TextSecondary,
                             modifier = Modifier
-                                .size(22.dp)
+                                .size(24.dp)
                                 .clickable { onNavigateToAlerts() },
                         )
                     }
@@ -171,7 +170,7 @@ fun DashboardScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Icon(Icons.Filled.Videocam, null, tint = TextDisabled, modifier = Modifier.size(36.dp))
+                        Image(painterResource(R.drawable.devices), contentDescription = null, modifier = Modifier.size(48.dp))
                         Text("NO_DEVICES_PAIRED", color = TextSecondary, fontSize = 12.sp,
                             fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                         Text(
@@ -188,7 +187,7 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Icon(Icons.Filled.Add, null, tint = OrangePrimary, modifier = Modifier.size(14.dp))
+                            Image(painterResource(R.drawable.add_cam), contentDescription = null, modifier = Modifier.size(18.dp))
                             Text("ADD_DEVICE", color = OrangePrimary, fontSize = 10.sp,
                                 fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                         }
@@ -279,10 +278,10 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    QuickAction(icon = Icons.Filled.Add,           label = "ADD_CAM",   tint = GreenOnline,    modifier = Modifier.weight(1f), onClick = onAddDevice)
-                    QuickAction(icon = Icons.Filled.NetworkCheck,  label = "SCAN_NET",  tint = CyanTertiaryDim, modifier = Modifier.weight(1f), onClick = onAddDevice)
-                    QuickAction(icon = Icons.Filled.Notifications, label = "ALERTS",    tint = ErrorRed,       modifier = Modifier.weight(1f), onClick = onNavigateToAlerts)
-                    QuickAction(icon = Icons.Filled.Refresh,       label = "RE_SYNC",   tint = OrangePrimary,  modifier = Modifier.weight(1f), onClick = { viewModel.refresh() })
+                    QuickAction(iconRes = R.drawable.add_cam,    label = "ADD_CAM",  tint = GreenOnline,     modifier = Modifier.weight(1f), onClick = onAddDevice)
+                    QuickAction(iconRes = R.drawable.net_config, label = "SCAN_NET", tint = CyanTertiaryDim, modifier = Modifier.weight(1f), onClick = onAddDevice)
+                    QuickAction(iconRes = R.drawable.alerts,     label = "ALERTS",   tint = ErrorRed,        modifier = Modifier.weight(1f), onClick = onNavigateToAlerts)
+                    QuickAction(icon = Icons.Filled.Refresh,     label = "RE_SYNC",  tint = OrangePrimary,   modifier = Modifier.weight(1f), onClick = { viewModel.refresh() })
                 }
             }
 
@@ -374,7 +373,7 @@ private fun FeedTile(device: DeviceProfile, onClick: () -> Unit) {
             }
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.Videocam, null, tint = OrangePrimary.copy(alpha = 0.18f), modifier = Modifier.size(36.dp))
+                Image(painterResource(R.drawable.devices_lite), contentDescription = null, modifier = Modifier.size(48.dp))
             }
         }
 
@@ -492,6 +491,36 @@ private fun QuickAction(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    QuickActionShell(label = label, tint = tint, modifier = modifier, onClick = onClick) {
+        Icon(imageVector = icon, contentDescription = label, tint = tint, modifier = Modifier.size(22.dp))
+    }
+}
+
+@Composable
+private fun QuickAction(
+    @DrawableRes iconRes: Int,
+    label: String,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    QuickActionShell(label = label, tint = tint, modifier = modifier, onClick = onClick) {
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = label,
+            modifier = Modifier.size(28.dp),
+        )
+    }
+}
+
+@Composable
+private fun QuickActionShell(
+    label: String,
+    tint: Color,
+    modifier: Modifier,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit,
+) {
     Column(
         modifier = modifier
             .background(tint.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
@@ -501,7 +530,7 @@ private fun QuickAction(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(imageVector = icon, contentDescription = label, tint = tint, modifier = Modifier.size(22.dp))
+        icon()
         Text(
             text = label,
             color = tint,

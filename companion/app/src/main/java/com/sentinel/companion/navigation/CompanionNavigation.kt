@@ -4,14 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Videocam
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -20,8 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.sentinel.companion.R
 import com.sentinel.companion.ui.screens.alerts.AlertsScreen
 import com.sentinel.companion.ui.screens.connect.ConnectScreen
 import com.sentinel.companion.ui.screens.dashboard.DashboardScreen
@@ -68,7 +66,7 @@ object Routes {
 private data class NavItem(
     val route: String,
     val label: String,
-    val icon: ImageVector,
+    @DrawableRes val iconRes: Int,
     val badgeCount: Int = 0,
 )
 
@@ -168,10 +166,10 @@ private fun MainScaffold(
     val currentDestination = navBackStack?.destination
 
     val navItems = listOf(
-        NavItem(Routes.DASHBOARD,   "OVERVIEW", Icons.Filled.Dashboard),
-        NavItem(Routes.DEVICE_LIST, "CAMERAS",  Icons.Filled.Videocam),
-        NavItem(Routes.ALERTS,      "ALERTS",   Icons.Filled.Notifications),
-        NavItem(Routes.SETTINGS,    "CONFIG",   Icons.Filled.Settings),
+        NavItem(Routes.DASHBOARD,   "OVERVIEW", R.drawable.uview_icon),
+        NavItem(Routes.DEVICE_LIST, "CAMERAS",  R.drawable.devices),
+        NavItem(Routes.ALERTS,      "ALERTS",   R.drawable.alerts),
+        NavItem(Routes.SETTINGS,    "CONFIG",   R.drawable.settings),
     )
 
     Scaffold(
@@ -202,9 +200,10 @@ private fun MainScaffold(
                                     }
                                 }
                             ) {
-                                Icon(
-                                    imageVector = item.icon,
+                                Image(
+                                    painter = painterResource(item.iconRes),
                                     contentDescription = item.label,
+                                    modifier = Modifier.size(24.dp),
                                 )
                             }
                         },

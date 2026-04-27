@@ -21,17 +21,16 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.ui.res.painterResource
+import com.sentinel.companion.R
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -206,12 +205,7 @@ private fun AlertRow(alert: Alert, onClick: () -> Unit) {
                 .border(1.dp, accentColor.copy(alpha = 0.3f), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                imageVector = alertIcon(type),
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(20.dp),
-            )
+            AlertGlyph(type = type, accentColor = accentColor)
         }
 
         Column(modifier = Modifier.weight(1f)) {
@@ -261,14 +255,35 @@ private fun AlertRow(alert: Alert, onClick: () -> Unit) {
     }
 }
 
-private fun alertIcon(type: AlertType): ImageVector = when (type) {
-    AlertType.MOTION              -> Icons.Filled.CameraAlt
-    AlertType.CONNECTION_LOST     -> Icons.Filled.WifiOff
-    AlertType.CONNECTION_RESTORED -> Icons.Filled.Wifi
-    AlertType.RECORDING_STARTED   -> Icons.Filled.FiberManualRecord
-    AlertType.RECORDING_STOPPED   -> Icons.Filled.Stop
-    AlertType.SNAPSHOT            -> Icons.Filled.PhotoCamera
-    AlertType.SYSTEM              -> Icons.Filled.Info
+@Composable
+private fun AlertGlyph(type: AlertType, accentColor: Color) {
+    val customRes: Int? = when (type) {
+        AlertType.MOTION            -> R.drawable.alerts
+        AlertType.RECORDING_STARTED -> R.drawable.record
+        AlertType.SNAPSHOT          -> R.drawable.snapshot
+        else                        -> null
+    }
+    if (customRes != null) {
+        Image(
+            painter = painterResource(customRes),
+            contentDescription = null,
+            modifier = Modifier.size(26.dp),
+        )
+    } else {
+        val vector: ImageVector = when (type) {
+            AlertType.CONNECTION_LOST     -> Icons.Filled.WifiOff
+            AlertType.CONNECTION_RESTORED -> Icons.Filled.Wifi
+            AlertType.RECORDING_STOPPED   -> Icons.Filled.Stop
+            AlertType.SYSTEM              -> Icons.Filled.Info
+            else                          -> Icons.Filled.Info
+        }
+        Icon(
+            imageVector = vector,
+            contentDescription = null,
+            tint = accentColor,
+            modifier = Modifier.size(20.dp),
+        )
+    }
 }
 
 private fun formatTimestamp(ms: Long): String {

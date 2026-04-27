@@ -45,8 +45,11 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.painterResource
+import com.sentinel.app.R
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -121,7 +124,7 @@ fun MultiViewScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(Icons.Default.Security, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
+            Image(painterResource(R.drawable.uview_icon), contentDescription = null, modifier = Modifier.size(40.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "TACTICAL_GRID_v4.2",
@@ -202,7 +205,7 @@ fun MultiViewScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Icon(Icons.Default.GridView, null, tint = TextDisabled, modifier = Modifier.size(56.dp))
+                            Image(painterResource(R.drawable.devices_lite), contentDescription = null, modifier = Modifier.size(72.dp))
                             Text("NO_FEEDS_ACTIVE", fontSize = 14.sp, fontWeight = FontWeight.Black,
                                 fontStyle = FontStyle.Italic, color = TextDisabled)
                             PrimaryButton("+ ADD_CAMERA", onClick = onNavigateAddCamera, icon = Icons.Default.Add)

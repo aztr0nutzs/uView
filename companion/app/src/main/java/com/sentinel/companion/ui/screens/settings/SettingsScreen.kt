@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
+import com.sentinel.companion.R
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
@@ -94,8 +95,8 @@ fun SettingsScreen(
             item {
                 SectionCard {
                     SettingsRow(
-                        icon = Icons.Filled.Wifi,
-                        iconTint = if (conn.hostAddress.isNotBlank()) GreenOnline else TextDisabled,
+                        iconRes = R.drawable.net_config,
+                        accent = if (conn.hostAddress.isNotBlank()) GreenOnline else TextDisabled,
                         title = "HOST_ADDRESS",
                         subtitle = if (conn.hostAddress.isNotBlank())
                             "${if (conn.useHttps) "https" else "http"}://${conn.hostAddress}:${conn.port}"
@@ -130,8 +131,8 @@ fun SettingsScreen(
                     // not shipped yet — surface them as disabled rather than as toggles
                     // that silently do nothing when flipped.
                     SettingsRow(
-                        icon = Icons.Filled.Notifications,
-                        iconTint = TextDisabled,
+                        iconRes = R.drawable.alerts,
+                        accent = TextDisabled,
                         title = "PUSH_NOTIFICATIONS",
                         subtitle = "Requires Sentinel Hub push pipeline (not yet available)",
                         trailing = {
@@ -145,8 +146,8 @@ fun SettingsScreen(
                     )
                     HorizontalDivider(color = SurfaceStroke, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
                     SettingsRow(
-                        icon = Icons.Filled.Videocam,
-                        iconTint = TextDisabled,
+                        iconRes = R.drawable.devices,
+                        accent = TextDisabled,
                         title = "MOTION_ALERTS",
                         subtitle = "Requires server-side motion events (not yet available)",
                         trailing = {
@@ -288,8 +289,7 @@ fun SettingsScreen(
             item {
                 SectionCard {
                     SettingsRow(
-                        icon = Icons.Filled.PhoneAndroid,
-                        iconTint = OrangePrimary,
+                        iconRes = R.drawable.uview_icon,
                         title = "SENTINEL_COMPANION",
                         subtitle = "v1.0.0 // Companion viewer for Sentinel Home",
                     )
