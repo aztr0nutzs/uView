@@ -12,7 +12,7 @@ Required:
 - Windows PowerShell or Command Prompt for `gradlew.bat`, or a Unix shell for `./gradlew`.
 - JDK 17 or newer. Latest local receipt used Temurin JDK 21.0.10.
 - Android SDK configured through one of:
-  - `local.properties` with `sdk.dir=C:\\path\\to\\Android\\Sdk`
+  - `local.properties` with `sdk.dir=<absolute path to Android SDK>`
   - `ANDROID_HOME`
   - `ANDROID_SDK_ROOT`
 - Android platform for compileSdk 35 installed.

@@ -12,7 +12,7 @@ Required:
 - Android SDK installed with the compileSdk 35 platform.
 - Network access for first-time Gradle dependency resolution.
 - SDK path configured through one of:
-  - `local.properties` containing `sdk.dir=C:\\path\\to\\Android\\Sdk`
+  - `local.properties` containing `sdk.dir=<absolute path to Android SDK>`
   - `ANDROID_HOME`
   - `ANDROID_SDK_ROOT`
 
@@ -138,7 +138,7 @@ Commands and outcomes:
 .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 # PASS: debug APK assembled, testDebugUnitTest completed with NO-SOURCE, lintDebug passed.
 
-$env:ANDROID_HOME='C:\Users\Aztr0nutZs\AppData\Local\Android\Sdk'
+$env:ANDROID_HOME='<absolute path to Android SDK>'
 $env:ANDROID_SDK_ROOT=$env:ANDROID_HOME
 .\gradlew.bat --console=plain :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 # PASS: security hardening build receipt. Debug APK assembled, testDebugUnitTest completed with NO-SOURCE, lintDebug passed.

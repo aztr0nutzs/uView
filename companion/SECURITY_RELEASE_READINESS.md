@@ -42,7 +42,7 @@ The app does not currently store Sentinel account credentials, OAuth refresh tok
 Command run from `companion/`:
 
 ```powershell
-$env:ANDROID_HOME='C:\Users\Aztr0nutZs\AppData\Local\Android\Sdk'
+$env:ANDROID_HOME='<absolute path to Android SDK>'
 $env:ANDROID_SDK_ROOT=$env:ANDROID_HOME
 .\gradlew.bat --console=plain :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ```

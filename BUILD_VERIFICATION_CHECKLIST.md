@@ -14,7 +14,7 @@ This checklist is required for contributor handoff. Do **not** claim build readi
 - `local.properties` exists in `uView/` with:
 
 ```properties
-sdk.dir=/absolute/path/to/Android/Sdk
+sdk.dir=<absolute path to Android SDK>
 ```
 
 ## 2) Required project files (must exist)
