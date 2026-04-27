@@ -85,6 +85,12 @@ class StreamEndpointTester @Inject constructor() {
         password: String,
     ): EndpointTestResult = withContext(Dispatchers.IO) {
         val cleanHost = host.trim()
+        val normalizedPath = if (path.isBlank()) "/" else if (path.startsWith("/") || path.contains("://")) path else "/$path"
+
+        if (protocol == StreamProtocol.CUSTOM && normalizedPath.contains("://")) {
+            return@withContext testCustom(normalizedPath, cleanHost, port, authType, username, password)
+        }
+
         if (cleanHost.isBlank()) {
             return@withContext EndpointTestResult.DnsFailed("Host address is empty")
         }
@@ -98,8 +104,6 @@ class StreamEndpointTester @Inject constructor() {
         } catch (e: UnknownHostException) {
             return@withContext EndpointTestResult.DnsFailed("Cannot resolve host '$cleanHost' (DNS lookup failed)")
         }
-
-        val normalizedPath = if (path.isBlank()) "/" else if (path.startsWith("/") || path.contains("://")) path else "/$path"
 
         return@withContext when (protocol) {
             StreamProtocol.RTSP,
@@ -375,7 +379,10 @@ class StreamEndpointTester @Inject constructor() {
             return EndpointTestResult.Internal("CUSTOM URL is malformed: ${e.message ?: rawPath}")
         }
         val targetHost = uri.host ?: host
-        val targetPort = if (uri.port > 0) uri.port else port
+        val targetPort = if (uri.port > 0) uri.port else defaultPortForScheme(uri.scheme) ?: port
+        if (targetPort !in 1..65535) {
+            return EndpointTestResult.Internal("CUSTOM URL has no valid port for scheme \"${uri.scheme}\"")
+        }
         val targetPath = (uri.rawPath ?: "/").ifBlank { "/" } + (uri.rawQuery?.let { "?$it" } ?: "")
 
         return when (uri.scheme?.lowercase()) {
@@ -402,5 +409,12 @@ class StreamEndpointTester @Inject constructor() {
                 "Scheme \"${uri.scheme}\" is not supported by on-device validation"
             )
         }
+    }
+
+    private fun defaultPortForScheme(scheme: String?): Int? = when (scheme?.lowercase()) {
+        "rtsp" -> 554
+        "http" -> 80
+        "https" -> 443
+        else -> null
     }
 }
