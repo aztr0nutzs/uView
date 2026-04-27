@@ -3,7 +3,6 @@ package com.sentinel.companion.di
 import android.content.Context
 import com.sentinel.companion.data.db.AlertDao
 import com.sentinel.companion.data.db.AppDatabase
-import com.sentinel.companion.data.db.CameraDao
 import com.sentinel.companion.data.db.DeviceDao
 import dagger.Module
 import dagger.Provides
@@ -24,10 +23,6 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDeviceDao(db: AppDatabase): DeviceDao = db.deviceDao()
-
-    @Provides
-    @Singleton
-    fun provideCameraDao(db: AppDatabase): CameraDao = db.cameraDao()
 
     @Provides
     @Singleton

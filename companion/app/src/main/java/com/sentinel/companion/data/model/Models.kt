@@ -4,51 +4,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
-// ─── Camera ──────────────────────────────────────────────────────────────────
-
-enum class SourceType(val label: String) {
-    RTSP("RTSP"),
-    MJPEG("MJPEG"),
-    HLS("HLS"),
-    ONVIF("ONVIF"),
-    DROIDCAM("DroidCam"),
-    IP_WEBCAM("IP Webcam"),
-    ALFRED("Alfred"),
-    CUSTOM("Custom"),
-}
-
-enum class CameraStatus(val label: String) {
-    ONLINE("ONLINE"),
-    OFFLINE("OFFLINE"),
-    CONNECTING("CONNECTING"),
-    DISABLED("DISABLED"),
-    UNKNOWN("UNKNOWN"),
-}
-
-@Entity(tableName = "cameras")
-@Serializable
-data class Camera(
-    @PrimaryKey val id: String,
-    val name: String,
-    val room: String,
-    val sourceType: String,
-    val streamUrl: String,
-    val username: String = "",
-    val password: String = "",
-    val status: String = CameraStatus.UNKNOWN.name,
-    val latencyMs: Int = 0,
-    val isFavorite: Boolean = false,
-    val isEnabled: Boolean = true,
-    val lastSeenMs: Long = 0L,
-    val addedMs: Long = System.currentTimeMillis(),
-    val snapshotPath: String = "",
-) {
-    fun sourceTypeEnum(): SourceType =
-        SourceType.entries.firstOrNull { it.name == sourceType } ?: SourceType.CUSTOM
-
-    fun statusEnum(): CameraStatus =
-        CameraStatus.entries.firstOrNull { it.name == status } ?: CameraStatus.UNKNOWN
-}
+// NOTE: The legacy `Camera` / `CameraStatus` / `SourceType` types lived here.
+// They were removed once DeviceProfile / DeviceDao / DeviceRepository became
+// the single source of truth for companion devices — see DeviceProfile.kt.
 
 // ─── Alert ───────────────────────────────────────────────────────────────────
 

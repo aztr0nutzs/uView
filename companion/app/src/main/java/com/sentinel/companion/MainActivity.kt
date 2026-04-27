@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import com.sentinel.companion.data.repository.CameraRepository
 import com.sentinel.companion.data.repository.DeviceRepository
 import com.sentinel.companion.data.repository.PreferencesRepository
 import com.sentinel.companion.navigation.CompanionNavHost
@@ -31,7 +30,6 @@ class MainActivity : FragmentActivity() {
 
     @Inject lateinit var prefsRepo: PreferencesRepository
     @Inject lateinit var deviceRepo: DeviceRepository
-    @Inject lateinit var cameraRepo: CameraRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +40,6 @@ class MainActivity : FragmentActivity() {
         // Safe to run on every launch — encrypted rows are skipped.
         lifecycleScope.launch {
             runCatching { deviceRepo.migrateLegacyCredentials() }
-            runCatching { cameraRepo.migrateLegacyCredentials() }
         }
 
         val startDestination = runBlocking {

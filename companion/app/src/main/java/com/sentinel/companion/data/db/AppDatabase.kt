@@ -7,18 +7,16 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sentinel.companion.data.model.Alert
-import com.sentinel.companion.data.model.Camera
 import com.sentinel.companion.data.model.DeviceProfile
 
 @Database(
-    entities = [DeviceProfile::class, Camera::class, Alert::class],
-    version = 2,
+    entities = [DeviceProfile::class, Alert::class],
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun deviceDao(): DeviceDao
-    abstract fun cameraDao(): CameraDao
     abstract fun alertDao(): AlertDao
 
     companion object {
@@ -26,7 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -66,6 +64,16 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     """.trimIndent(),
                 )
+            }
+        }
+
+        // The split-brain Camera/CameraDao path was removed — DeviceProfile is the
+        // single source of truth. Drop the now-orphan `cameras` table; the
+        // `alerts` table keeps its `cameraId`/`cameraName` columns (now holding
+        // device id/name) so historical alert rows survive the migration.
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS `cameras`")
             }
         }
     }
