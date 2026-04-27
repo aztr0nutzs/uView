@@ -247,7 +247,7 @@ Make the project actually handoff-ready.
 - add contributor docs:
   - AGENTS.md
   - MASTER_INSPECTION.md
-  - UI_PRESERVATION_RULES.md
+  - UI_PRESERVATION.md
   - BUILD_VERIFICATION_CHECKLIST.md
 - add a screen authority doc referencing the 3 root HTML files
 

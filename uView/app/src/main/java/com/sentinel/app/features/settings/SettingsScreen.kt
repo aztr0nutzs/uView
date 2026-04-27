@@ -17,9 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NetworkCheck
@@ -28,7 +27,6 @@ import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Science
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Videocam
@@ -136,7 +134,7 @@ private fun SettingsContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = TextPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextPrimary)
             }
             Text(
                 "Settings",
@@ -200,19 +198,6 @@ private fun SettingsContent(
                         subtitle = "Block all external network access for cameras",
                         checked = settings.localOnlyMode,
                         onCheckedChange = onSetLocalOnly
-                    )
-                }
-            }
-
-            // ── Storage ───────────────────────────────────────────────────
-            item {
-                SectionCard(title = "Storage") {
-                    SettingsInfoRow(
-                        icon = Icons.Default.FolderOpen,
-                        title = "Recording Save Path",
-                        subtitle = "Custom folder picker is not wired; recordings use app-managed Movies/SentinelRecordings",
-                        valueLabel = "APP MANAGED",
-                        availability = "LOCKED"
                     )
                 }
             }
@@ -295,7 +280,7 @@ private fun SettingsContent(
                     )
                     SettingsDivider()
                     SettingsInfoRow(
-                        icon = Icons.Default.Security,
+                        icon = painterResource(R.drawable.uview_icon_dark),
                         title = "Privacy Statement",
                         subtitle = "This app monitors only user-added cameras on your network",
                         valueLabel = "LOCAL",
