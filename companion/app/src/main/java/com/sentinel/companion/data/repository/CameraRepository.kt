@@ -9,10 +9,13 @@ import com.sentinel.companion.data.model.SystemStatus
 import com.sentinel.companion.data.sync.CompanionSyncService
 import com.sentinel.companion.data.sync.SyncPhase
 import com.sentinel.companion.data.sync.SyncState
+import com.sentinel.companion.security.CredentialCipher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,9 +32,10 @@ class CameraRepository @Inject constructor(
     private val alertDao: AlertDao,
     private val prefsRepo: PreferencesRepository,
     private val syncService: CompanionSyncService,
+    private val cipher: CredentialCipher,
 ) {
 
-    val cameras: Flow<List<Camera>> = cameraDao.observeAll()
+    val cameras: Flow<List<Camera>> = cameraDao.observeAll().map { list -> list.map(::decryptForRead) }
     val alerts: Flow<List<Alert>> = alertDao.observeAll()
     val syncState: StateFlow<SyncState> = syncService.state
 
@@ -57,7 +61,8 @@ class CameraRepository @Inject constructor(
         )
     }
 
-    fun getCameraById(id: String): Flow<Camera?> = cameraDao.observeById(id)
+    fun getCameraById(id: String): Flow<Camera?> =
+        cameraDao.observeById(id).map { it?.let(::decryptForRead) }
 
     fun getAlertsByCameraId(cameraId: String): Flow<List<Alert>> =
         alerts.map { list -> list.filter { it.cameraId == cameraId } }
@@ -81,7 +86,7 @@ class CameraRepository @Inject constructor(
     suspend fun markAlertRead(alertId: String) = alertDao.markRead(alertId)
     suspend fun markAllAlertsRead() = alertDao.markAllRead()
 
-    suspend fun addCamera(camera: Camera) = cameraDao.upsert(camera)
+    suspend fun addCamera(camera: Camera) = cameraDao.upsert(encryptForWrite(camera))
     suspend fun deleteCamera(cameraId: String) = cameraDao.deleteById(cameraId)
 
     /** Manual refresh trigger from the UI. */
@@ -90,4 +95,36 @@ class CameraRepository @Inject constructor(
     }
 
     fun isSyncing(): Boolean = syncState.value.phase == SyncPhase.RUNNING
+
+    suspend fun migrateLegacyCredentials(): Int {
+        val all = cameraDao.observeAll().first()
+        var migrated = 0
+        for (raw in all) {
+            if (raw.password.isNotEmpty() && !cipher.isEncrypted(raw.password)) {
+                try {
+                    cameraDao.upsert(raw.copy(password = cipher.encrypt(raw.password)))
+                    migrated++
+                } catch (e: Exception) {
+                    Timber.w(e, "Skipping legacy camera credential migration for %s", raw.id)
+                }
+            }
+        }
+        if (migrated > 0) Timber.i("Migrated %d legacy camera credentials", migrated)
+        return migrated
+    }
+
+    private fun encryptForWrite(camera: Camera): Camera {
+        if (camera.password.isEmpty() || cipher.isEncrypted(camera.password)) return camera
+        return camera.copy(password = cipher.encrypt(camera.password))
+    }
+
+    private fun decryptForRead(camera: Camera): Camera {
+        if (camera.password.isEmpty() || !cipher.isEncrypted(camera.password)) return camera
+        return try {
+            camera.copy(password = cipher.decrypt(camera.password))
+        } catch (e: Exception) {
+            Timber.w(e, "Decrypt failed for camera %s; clearing in-memory password", camera.id)
+            camera.copy(password = "")
+        }
+    }
 }

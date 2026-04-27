@@ -137,6 +137,11 @@ Commands and outcomes:
 
 .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 # PASS: debug APK assembled, testDebugUnitTest completed with NO-SOURCE, lintDebug passed.
+
+$env:ANDROID_HOME='C:\Users\Aztr0nutZs\AppData\Local\Android\Sdk'
+$env:ANDROID_SDK_ROOT=$env:ANDROID_HOME
+.\gradlew.bat --console=plain :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+# PASS: security hardening build receipt. Debug APK assembled, testDebugUnitTest completed with NO-SOURCE, lintDebug passed.
 ```
 
 Receipt limits:

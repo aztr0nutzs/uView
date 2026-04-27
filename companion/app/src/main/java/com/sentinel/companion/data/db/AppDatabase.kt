@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.Camera
 import com.sentinel.companion.data.model.DeviceProfile
@@ -24,7 +26,47 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
-                .fallbackToDestructiveMigration()
+                .addMigrations(MIGRATION_1_2)
                 .build()
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `cameras` (
+                        `id` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `room` TEXT NOT NULL,
+                        `sourceType` TEXT NOT NULL,
+                        `streamUrl` TEXT NOT NULL,
+                        `username` TEXT NOT NULL,
+                        `password` TEXT NOT NULL,
+                        `status` TEXT NOT NULL,
+                        `latencyMs` INTEGER NOT NULL,
+                        `isFavorite` INTEGER NOT NULL,
+                        `isEnabled` INTEGER NOT NULL,
+                        `lastSeenMs` INTEGER NOT NULL,
+                        `addedMs` INTEGER NOT NULL,
+                        `snapshotPath` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `alerts` (
+                        `id` TEXT NOT NULL,
+                        `cameraId` TEXT NOT NULL,
+                        `cameraName` TEXT NOT NULL,
+                        `type` TEXT NOT NULL,
+                        `message` TEXT NOT NULL,
+                        `timestampMs` INTEGER NOT NULL,
+                        `isRead` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+            }
+        }
     }
 }

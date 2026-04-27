@@ -115,6 +115,9 @@ dependencies {
     // Timber
     implementation(libs.timber)
 
+    // Security - Keystore-backed encryption + BiometricPrompt
+    implementation(libs.androidx.biometric)
+
     // Debug tooling
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

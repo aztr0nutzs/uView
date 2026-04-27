@@ -3,7 +3,6 @@ package com.sentinel.companion.ui.screens.stream
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
@@ -51,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -61,6 +61,8 @@ import androidx.media3.ui.PlayerView
 import com.sentinel.companion.data.model.DeviceProfile
 import com.sentinel.companion.data.model.DeviceState
 import com.sentinel.companion.data.repository.DeviceRepository
+import com.sentinel.companion.data.repository.PreferencesRepository
+import com.sentinel.companion.security.BiometricGate
 import com.sentinel.companion.ui.components.CornerBrackets
 import com.sentinel.companion.ui.components.PulseDot
 import com.sentinel.companion.ui.theme.BackgroundDeep
@@ -74,10 +76,12 @@ import com.sentinel.companion.ui.theme.TextPrimary
 import com.sentinel.companion.ui.theme.TextSecondary
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 // ─── ViewModel ────────────────────────────────────────────────────────────────
@@ -128,23 +132,28 @@ class StreamViewerViewModel @Inject constructor(
 // ─── Activity ─────────────────────────────────────────────────────────────────
 
 @AndroidEntryPoint
-class StreamViewerActivity : ComponentActivity() {
+class StreamViewerActivity : FragmentActivity() {
+
+    @Inject lateinit var prefsRepo: PreferencesRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID) ?: run { finish(); return }
+        val appLockEnabled = runBlocking { prefsRepo.appPrefs.first().biometricLock }
 
         setContent {
             SentinelCompanionTheme {
-                val viewModel: StreamViewerViewModel = androidx.hilt.navigation.compose.hiltViewModel()
-                LaunchedEffect(deviceId) { viewModel.load(deviceId) }
+                BiometricGate(enabled = appLockEnabled) {
+                    val viewModel: StreamViewerViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+                    LaunchedEffect(deviceId) { viewModel.load(deviceId) }
 
-                StreamViewerScreen(
-                    viewModel = viewModel,
-                    onBack    = { finish() },
-                    onSettings = { /* navigate to device settings */ },
-                )
+                    StreamViewerScreen(
+                        viewModel = viewModel,
+                        onBack    = { finish() },
+                        onSettings = { /* navigate to device settings */ },
+                    )
+                }
             }
         }
     }

@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +48,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sentinel.companion.data.model.StreamQuality
+import com.sentinel.companion.security.BiometricAvailability
+import com.sentinel.companion.security.biometricAvailability
 import com.sentinel.companion.ui.components.CompanionTopBar
 import com.sentinel.companion.ui.components.SectionCard
 import com.sentinel.companion.ui.components.SectionHeader
@@ -72,6 +75,8 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val prefs = state.appPrefs
     val conn  = state.connectionPrefs
+    val context = LocalContext.current
+    val authAvailable = biometricAvailability(context) == BiometricAvailability.AVAILABLE
 
     Column(
         modifier = Modifier
@@ -245,18 +250,18 @@ fun SettingsScreen(
             item { SectionHeader(title = "SECURITY") }
             item {
                 SectionCard {
-                    // No BiometricPrompt is wired into MainActivity yet; flipping this
-                    // toggle would store a pref that is never enforced. Disable it.
                     SettingsRow(
                         icon = Icons.Filled.Lock,
-                        iconTint = TextDisabled,
+                        iconTint = if (authAvailable || prefs.biometricLock) OrangePrimary else TextDisabled,
                         title = "BIOMETRIC_LOCK",
-                        subtitle = "BiometricPrompt not yet wired into app launch",
+                        subtitle = if (authAvailable)
+                            "Require biometric or device credential on app launch and resume"
+                        else "Unavailable until a biometric or device credential is enrolled",
                         trailing = {
                             Switch(
-                                checked = false,
-                                onCheckedChange = null,
-                                enabled = false,
+                                checked = prefs.biometricLock,
+                                onCheckedChange = viewModel::setBiometricLock,
+                                enabled = authAvailable || prefs.biometricLock,
                                 colors = switchColors(),
                             )
                         },
