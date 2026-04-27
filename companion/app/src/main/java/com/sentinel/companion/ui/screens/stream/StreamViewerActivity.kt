@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -104,16 +105,25 @@ class StreamViewerViewModel @Inject constructor(
     fun load(deviceId: String) {
         viewModelScope.launch {
             repo.observeDevice(deviceId).collect { device ->
-                _state.value = _state.value.copy(device = device)
+                _state.value = _state.value.copy(
+                    device = device,
+                    latencyMs = device?.latencyMs ?: 0,
+                )
             }
         }
     }
 
     fun onPlaybackStarted() {
-        val latency = (20..90).random()
-        _state.value = _state.value.copy(isBuffering = false, isPlaying = true, error = null, latencyMs = latency)
-        _state.value.device?.id?.let { id ->
-            viewModelScope.launch { repo.updateState(id, DeviceState.ONLINE, latencyMs = latency) }
+        val current = _state.value
+        val lastKnownLatencyMs = current.device?.latencyMs ?: 0
+        _state.value = current.copy(
+            isBuffering = false,
+            isPlaying = true,
+            error = null,
+            latencyMs = lastKnownLatencyMs,
+        )
+        current.device?.id?.let { id ->
+            viewModelScope.launch { repo.updateState(id, DeviceState.ONLINE, latencyMs = lastKnownLatencyMs) }
         }
     }
 
@@ -150,7 +160,6 @@ class StreamViewerActivity : FragmentActivity() {
                     StreamViewerScreen(
                         viewModel = viewModel,
                         onBack    = { finish() },
-                        onSettings = { /* navigate to device settings */ },
                     )
                 }
             }
@@ -176,7 +185,6 @@ class StreamViewerActivity : FragmentActivity() {
 private fun StreamViewerScreen(
     viewModel: StreamViewerViewModel,
     onBack: () -> Unit,
-    onSettings: () -> Unit,
 ) {
     val state   by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -351,10 +359,10 @@ private fun StreamViewerScreen(
                     Spacer(Modifier.width(8.dp))
                     Image(
                         painter = painterResource(R.drawable.settings),
-                        contentDescription = "Settings",
+                        contentDescription = "Device settings unavailable from live stream",
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable(onClick = onSettings),
+                            .alpha(0.35f),
                     )
                 }
             }
@@ -397,9 +405,10 @@ private fun StreamViewerScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                val hasKnownLatency = state.latencyMs > 0
                 Text(
-                    text     = if (state.latencyMs > 0) "${state.latencyMs}ms" else "--",
-                    color    = if (state.latencyMs < 100) GreenOnline else OrangePrimary,
+                    text     = if (hasKnownLatency) "LAST CHECK ${state.latencyMs}ms" else "LAST CHECK --",
+                    color    = if (hasKnownLatency) GreenOnline else TextSecondary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
                 )
