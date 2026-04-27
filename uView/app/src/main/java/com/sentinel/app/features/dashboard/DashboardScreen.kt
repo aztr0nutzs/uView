@@ -27,11 +27,13 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SettingsOverscan
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.ui.res.painterResource
 import com.sentinel.app.R
@@ -46,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -329,7 +332,7 @@ private fun TacticalHubTopBar(
             Image(painterResource(R.drawable.alerts), contentDescription = "Events", modifier = Modifier.size(28.dp))
         }
         IconButton(onClick = onSettingsClick, modifier = Modifier.size(36.dp)) {
-            Icon(Icons.Default.BatteryAlert, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
+            Icon(Icons.Default.BatteryChargingFull, null, tint = OrangePrimary, modifier = Modifier.size(28.dp))
         }
     }
 }
@@ -355,6 +358,13 @@ private fun SignalFilterField() {
                 Spacer(Modifier.width(10.dp))
                 Text("QUERY_FEED_IDENTIFIER...", color = TextDisabled, fontSize = 13.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = 1.sp)
             }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .background(StatusOnline.copy(alpha = 0.9f))
+            )
             Column(
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -378,6 +388,7 @@ private fun RoomChipRow(rooms: List<String>) {
             val selected = room == "ALL_NODES"
             Box(
                 modifier = Modifier
+                    .shadow(if (selected) 10.dp else 0.dp, RoundedCornerShape(2.dp), ambientColor = OrangePrimary.copy(alpha = 0.38f), spotColor = OrangePrimary.copy(alpha = 0.38f))
                     .background(if (selected) OrangePrimary else SurfaceElevated, RoundedCornerShape(2.dp))
                     .border(1.dp, if (selected) OrangePrimary else CyanPrimary.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
                     .padding(horizontal = 22.dp, vertical = 8.dp)
@@ -425,7 +436,13 @@ private fun ReconFeedRow(camera: CameraDevice, onOpen: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Text(camera.name.uppercase(), color = if (camera.isOnline) TextPrimary else TextSecondary, fontWeight = FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, letterSpacing = 0.sp)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(camera.sourceType.name, color = CyanPrimary, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                Box(
+                    modifier = Modifier
+                        .background(CyanPrimary.copy(alpha = 0.12f), RoundedCornerShape(2.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(camera.sourceType.name, color = CyanPrimary, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                }
                 Spacer(Modifier.width(8.dp))
                 Text("LAT:${camera.healthStatus?.latencyMs ?: "---"}MS", color = TextSecondary, fontSize = 10.sp)
             }
@@ -452,6 +469,13 @@ private fun ReconFeedRow(camera: CameraDevice, onOpen: () -> Unit) {
             }
             Text("UUID:${camera.id.take(8).uppercase()}", fontSize = 9.sp, color = TextDisabled)
         }
+        Spacer(Modifier.width(8.dp))
+        Icon(
+            imageVector = Icons.Default.SettingsOverscan,
+            contentDescription = "Open feed",
+            tint = if (camera.isOnline) CyanPrimary else TextDisabled,
+            modifier = Modifier.size(22.dp)
+        )
     }
 }
 

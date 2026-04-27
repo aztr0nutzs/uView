@@ -124,7 +124,12 @@ fun MultiViewScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Image(painterResource(R.drawable.uview_icon), contentDescription = null, modifier = Modifier.size(40.dp))
+            Icon(
+                imageVector = Icons.Default.Security,
+                contentDescription = null,
+                tint = OrangePrimary,
+                modifier = Modifier.size(34.dp)
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "TACTICAL_GRID_v4.2",
@@ -184,6 +189,13 @@ fun MultiViewScreen(
             Box(
                 modifier = Modifier
                     .background(OrangePrimary)
+                    .drawBehind {
+                        drawRect(
+                            color = Color.Black.copy(alpha = 0.42f),
+                            topLeft = Offset(0f, size.height - 2.dp.toPx()),
+                            size = androidx.compose.ui.geometry.Size(size.width, 2.dp.toPx())
+                        )
+                    }
                     .clickable(onClick = viewModel::refreshAll)
                     .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
@@ -398,8 +410,8 @@ private fun TacticalFeedTile(
                 Text("SIGNAL_LOST", fontSize = 18.sp, fontWeight = FontWeight.Black,
                     fontStyle = FontStyle.Italic, color = ErrorDim, letterSpacing = (-0.5).sp)
                 Spacer(Modifier.height(4.dp))
-                Text("ATTEMPTING RECONNECT...", fontSize = 8.sp,
-                    color = ErrorRed.copy(alpha = 0.6f), letterSpacing = 2.sp)
+                Text("RECONNECTING_ATTEMPT_4/10", fontSize = 8.sp,
+                    color = ErrorRed.copy(alpha = 0.62f), letterSpacing = 1.6.sp)
             }
             // CRITICAL_FAILURE badge top-right
             TacticalBadge("CRITICAL_FAILURE", ErrorRed, filled = true,
@@ -414,7 +426,7 @@ private fun TacticalFeedTile(
             )
 
             // LIVE badge top-left with left-border red pill style
-            if (playerState is PlayerState.Playing) {
+            if (!isOffline) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -465,7 +477,7 @@ private fun TacticalFeedTile(
                 )
             }
             Text(
-                camera.preferredQuality.label.uppercase(),
+                "${camera.preferredQuality.label.uppercase()} // LIVE",
                 fontSize  = 9.sp,
                 color     = TextSecondary,
                 modifier  = Modifier.align(Alignment.BottomEnd)

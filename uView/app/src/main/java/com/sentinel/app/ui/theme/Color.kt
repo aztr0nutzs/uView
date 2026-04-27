@@ -75,6 +75,6 @@ val FeedBorderActive   = OrangePrimary
 val FeedScrim          = Color(0xCC000000)
 
 // Keep legacy aliases so existing code compiles
-val CyanPrimary        = CyanTertiaryDim    // was the primary accent — now tertiary
+val CyanPrimary        = CyanAccent         // brighter tactical cyan used by HTML inactive controls/labels
 val WarningAmber       = StatusConnecting
 val TealAccent         = GreenDim

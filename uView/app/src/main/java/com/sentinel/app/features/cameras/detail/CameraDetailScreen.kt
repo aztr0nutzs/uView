@@ -306,7 +306,7 @@ private fun DetailTopNav(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(72.dp)
             .background(Color(0xE60E0E0E))
             .drawBehind {
                 drawRect(
@@ -320,7 +320,7 @@ private fun DetailTopNav(
                     size = Size(size.width, 3.dp.toPx())
                 )
             }
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .padding(horizontal = 10.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
@@ -328,13 +328,13 @@ private fun DetailTopNav(
         }
         HudText(
             text = title,
-            fontSize = 20,
+            fontSize = 21,
             color = OrangePrimary,
             weight = FontWeight.Black,
             modifier = Modifier.weight(1f)
         )
         IconButton(onClick = onNavigateSettings, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.Default.Tune, "Settings", tint = OrangePrimary, modifier = Modifier.size(23.dp))
+            Icon(Icons.Default.Settings, "Settings", tint = OrangePrimary, modifier = Modifier.size(23.dp))
         }
     }
 }
@@ -400,7 +400,7 @@ private fun LiveFeedShell(
                 color = OrangeSoft
             )
             FeedStatusSlab(
-                text = if (camera.connectionProfile.useTls) "TLS ENCRYPTED" else "ENCRYPTION UNAVAILABLE",
+                text = if (camera.connectionProfile.useTls) "AES_256_ENCRYPTED" else "ENCRYPTION_UNAVAILABLE",
                 color = CyanTertiaryDim
             )
         }
@@ -434,10 +434,10 @@ private fun FeedIdentityOverlay(camera: CameraDevice, modifier: Modifier = Modif
             .padding(start = 12.dp, end = 10.dp, top = 6.dp, bottom = 7.dp)
     ) {
         Column {
-            HudText("CAM_ID", 9, OrangePrimary, FontWeight.Black)
+            HudText("CAM_ID", 10, OrangePrimary, FontWeight.Black)
             HudText(
                 text = "${camera.name} - ${camera.room}".uppercase(Locale.getDefault()),
-                fontSize = 18,
+                fontSize = 16,
                 color = TextPrimary,
                 weight = FontWeight.Bold,
                 maxLines = 1
@@ -615,7 +615,7 @@ private fun TacticalStripButton(action: ActionSpec, modifier: Modifier = Modifie
 
     Column(
         modifier = modifier
-            .height(76.dp)
+            .height(72.dp)
             .background(if (action.active || action.pulse) action.color.copy(alpha = pulseAlpha) else SurfaceBase)
             .drawBehind {
                 drawRect(

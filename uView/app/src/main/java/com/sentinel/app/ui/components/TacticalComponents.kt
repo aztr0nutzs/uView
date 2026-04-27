@@ -208,17 +208,17 @@ fun TacticalBadge(
 ) {
     Box(
         modifier = modifier
-            .background(if (filled) color.copy(alpha = 0.15f) else Color.Transparent)
-            .border(1.dp, color.copy(alpha = 0.4f))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+            .background(if (filled) color.copy(alpha = 0.18f) else Color.Transparent)
+            .border(1.dp, color.copy(alpha = if (filled) 0.35f else 0.4f))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
         Text(
             text       = text,
-            fontSize   = 8.sp,
+            fontSize   = 9.sp,
             fontWeight = FontWeight.Black,
             fontStyle  = FontStyle.Italic,
             color      = color,
-            letterSpacing = 0.5.sp,
+            letterSpacing = 0.6.sp,
             maxLines   = 1
         )
     }
@@ -495,8 +495,8 @@ fun CornerBrackets(
 fun FastenerDots(
     modifier: Modifier = Modifier,
     color: Color = SurfaceStroke,
-    size: Dp = 4.dp,
-    inset: Dp = 2.dp
+    size: Dp = 2.dp,
+    inset: Dp = 1.dp
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         Box(
@@ -552,6 +552,11 @@ fun TacticalFramePanel(
                     color = bottomEdge,
                     topLeft = Offset(0f, size.height - 4.dp.toPx()),
                     size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
+                )
+                drawRect(
+                    color = Color.Black.copy(alpha = 0.35f),
+                    topLeft = Offset(0f, size.height - 6.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width, 2.dp.toPx())
                 )
                 if (leftAccent.alpha > 0f) {
                     drawRect(
