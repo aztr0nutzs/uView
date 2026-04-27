@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.AlertType
-import com.sentinel.companion.data.repository.CameraRepository
+import com.sentinel.companion.data.repository.AlertsRepository
 import com.sentinel.companion.data.sync.SyncPhase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ data class AlertsUiState(
 
 @HiltViewModel
 class AlertsViewModel @Inject constructor(
-    private val repo: CameraRepository,
+    private val repo: AlertsRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AlertsUiState())

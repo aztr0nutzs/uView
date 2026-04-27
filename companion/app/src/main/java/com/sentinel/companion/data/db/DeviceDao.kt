@@ -59,4 +59,10 @@ interface DeviceDao {
 
     @Query("SELECT COUNT(*) FROM devices WHERE state = 'ONLINE'")
     suspend fun countOnline(): Int
+
+    @Query("SELECT * FROM devices WHERE isEnabled = 1")
+    suspend fun snapshotEnabled(): List<DeviceProfile>
+
+    @Query("SELECT * FROM devices WHERE id = :id")
+    suspend fun getById(id: String): DeviceProfile?
 }

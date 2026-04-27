@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sentinel.companion.data.model.AlertType
-import com.sentinel.companion.data.model.CameraStatus
+import com.sentinel.companion.data.model.DeviceState
 import com.sentinel.companion.ui.theme.BackgroundDeep
 import com.sentinel.companion.ui.theme.CyanSubtleBg
 import com.sentinel.companion.ui.theme.CyanTertiaryDim
@@ -231,13 +231,13 @@ fun StatCard(
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
 @Composable
-fun StatusBadge(status: CameraStatus, modifier: Modifier = Modifier) {
-    val (bg, fg, label) = when (status) {
-        CameraStatus.ONLINE      -> Triple(GreenContainer,   GreenOnline,      "ONLINE")
-        CameraStatus.OFFLINE     -> Triple(ErrorContainer,   ErrorRed,         "OFFLINE")
-        CameraStatus.CONNECTING  -> Triple(Color(0xFF2A2000), StatusConnecting, "LINKING")
-        CameraStatus.DISABLED    -> Triple(SurfaceHighest,   StatusDisabled,   "DISABLED")
-        CameraStatus.UNKNOWN     -> Triple(SurfaceHighest,   TextDisabled,     "UNKNOWN")
+fun StatusBadge(state: DeviceState, modifier: Modifier = Modifier) {
+    val (bg, fg, label) = when (state) {
+        DeviceState.ONLINE      -> Triple(GreenContainer,   GreenOnline,      "ONLINE")
+        DeviceState.OFFLINE     -> Triple(ErrorContainer,   ErrorRed,         "OFFLINE")
+        DeviceState.CONNECTING  -> Triple(Color(0xFF2A2000), StatusConnecting, "LINKING")
+        DeviceState.DISABLED    -> Triple(SurfaceHighest,   StatusDisabled,   "DISABLED")
+        DeviceState.UNKNOWN     -> Triple(SurfaceHighest,   TextDisabled,     "UNKNOWN")
     }
     Row(
         modifier = modifier
@@ -246,7 +246,7 @@ fun StatusBadge(status: CameraStatus, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        PulseDot(color = fg, size = 5.dp, animate = status == CameraStatus.ONLINE)
+        PulseDot(color = fg, size = 5.dp, animate = state == DeviceState.ONLINE)
         Text(
             text = label,
             color = fg,

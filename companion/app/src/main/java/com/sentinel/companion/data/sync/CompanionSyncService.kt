@@ -1,11 +1,11 @@
 package com.sentinel.companion.data.sync
 
 import com.sentinel.companion.data.db.AlertDao
-import com.sentinel.companion.data.db.CameraDao
+import com.sentinel.companion.data.db.DeviceDao
 import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.AlertType
-import com.sentinel.companion.data.model.Camera
-import com.sentinel.companion.data.model.CameraStatus
+import com.sentinel.companion.data.model.DeviceProfile
+import com.sentinel.companion.data.model.DeviceState
 import com.sentinel.companion.data.repository.PreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -27,14 +27,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Source of truth for what "online" means: a real per-camera reachability probe.
+ * Source of truth for what "online" means: a real per-device reachability probe.
  *
- * The companion app does not yet have a remote Sentinel Hub API contract — until it
- * does, we honestly do not pretend to receive a curated event stream from a server.
- * Instead we sync local DB state by probing each enabled camera's host:port and
- * (for HTTP-style URLs) the stream URL itself, then write back ONLINE/OFFLINE plus
- * a measured latency. Status transitions emit real Alert rows so the alerts feed
- * is grounded in observed events instead of fixture data.
+ * Reads/writes go through [DeviceDao] (the same table SetupViewModel writes to)
+ * so a device added via the setup wizard is immediately picked up by sync, the
+ * dashboard, and the foreground monitor without any bridging layer.
+ *
+ * The companion app does not yet have a remote Sentinel Hub API contract — until
+ * it does, we honestly do not pretend to receive a curated event stream from a
+ * server. Instead we sync local DB state by probing each enabled device's
+ * host:port and (for HTTP-style URLs) the stream URL itself, then write back
+ * ONLINE/OFFLINE plus a measured latency. Status transitions emit real Alert
+ * rows so the alerts feed is grounded in observed events instead of fixtures.
  */
 data class SyncOutcome(
     val ok: Boolean,
@@ -55,7 +59,7 @@ data class SyncState(
 
 @Singleton
 class CompanionSyncService @Inject constructor(
-    private val cameraDao: CameraDao,
+    private val deviceDao: DeviceDao,
     private val alertDao: AlertDao,
     private val prefsRepo: PreferencesRepository,
 ) {
@@ -89,8 +93,8 @@ class CompanionSyncService @Inject constructor(
             return outcome
         }
 
-        val cameras = cameraDao.snapshotEnabled()
-        if (cameras.isEmpty()) {
+        val devices = deviceDao.snapshotEnabled()
+        if (devices.isEmpty()) {
             val outcome = SyncOutcome(
                 ok = true, checkedCount = 0, onlineCount = 0, offlineCount = 0,
                 transitions = 0, finishedAtMs = System.currentTimeMillis(),
@@ -103,8 +107,8 @@ class CompanionSyncService @Inject constructor(
         val probed = try {
             withContext(Dispatchers.IO) {
                 coroutineScope {
-                    cameras.map { cam ->
-                        async { cam to probe(cam) }
+                    devices.map { device ->
+                        async { device to probe(device) }
                     }.awaitAll()
                 }
             }
@@ -124,20 +128,20 @@ class CompanionSyncService @Inject constructor(
         var offline = 0
         var transitions = 0
 
-        for ((cam, probeResult) in probed) {
-            val newStatus = if (probeResult.reachable) CameraStatus.ONLINE else CameraStatus.OFFLINE
-            val prevStatus = cam.statusEnum()
-            if (newStatus == CameraStatus.ONLINE) online++ else offline++
+        for ((device, probeResult) in probed) {
+            val newState = if (probeResult.reachable) DeviceState.ONLINE else DeviceState.OFFLINE
+            val prevState = device.stateEnum()
+            if (newState == DeviceState.ONLINE) online++ else offline++
 
-            cameraDao.updateStatus(cam.id, newStatus.name, probeResult.latencyMs, nowMs)
+            deviceDao.updateState(device.id, newState.name, probeResult.latencyMs, nowMs)
 
             // Real alert generation: only on observed transitions.
-            if (prevStatus != newStatus &&
-                (prevStatus == CameraStatus.ONLINE || prevStatus == CameraStatus.OFFLINE ||
-                 prevStatus == CameraStatus.CONNECTING || prevStatus == CameraStatus.UNKNOWN)
+            if (prevState != newState &&
+                (prevState == DeviceState.ONLINE || prevState == DeviceState.OFFLINE ||
+                 prevState == DeviceState.CONNECTING || prevState == DeviceState.UNKNOWN)
             ) {
                 transitions++
-                emitAlert(cam, newStatus, probeResult.detail, nowMs)
+                emitAlert(device, newState, probeResult.detail, nowMs)
             }
         }
 
@@ -156,8 +160,8 @@ class CompanionSyncService @Inject constructor(
 
     private data class ProbeResult(val reachable: Boolean, val latencyMs: Int, val detail: String)
 
-    private suspend fun probe(cam: Camera): ProbeResult = withContext(Dispatchers.IO) {
-        val url = cam.streamUrl
+    private suspend fun probe(device: DeviceProfile): ProbeResult = withContext(Dispatchers.IO) {
+        val url = device.streamUrl()
         val (host, port, isHttp) = parseEndpoint(url)
             ?: return@withContext ProbeResult(false, 0, "Unparseable stream URL")
 
@@ -208,17 +212,20 @@ class CompanionSyncService @Inject constructor(
         }
     }
 
-    private suspend fun emitAlert(cam: Camera, newStatus: CameraStatus, detail: String, nowMs: Long) {
-        val (type, message) = when (newStatus) {
-            CameraStatus.ONLINE  -> AlertType.CONNECTION_RESTORED to "${cam.name} came back online ($detail)"
-            CameraStatus.OFFLINE -> AlertType.CONNECTION_LOST to "${cam.name} unreachable ($detail)"
-            else                 -> return
+    private suspend fun emitAlert(device: DeviceProfile, newState: DeviceState, detail: String, nowMs: Long) {
+        val (type, message) = when (newState) {
+            DeviceState.ONLINE  -> AlertType.CONNECTION_RESTORED to "${device.name} came back online ($detail)"
+            DeviceState.OFFLINE -> AlertType.CONNECTION_LOST to "${device.name} unreachable ($detail)"
+            else                -> return
         }
+        // The Alert row keeps `cameraId` / `cameraName` column names from the v1
+        // schema; semantically they now hold the device id/name. Renaming the
+        // columns would require a destructive migration with no UX benefit.
         alertDao.insert(
             Alert(
                 id          = UUID.randomUUID().toString(),
-                cameraId    = cam.id,
-                cameraName  = cam.name,
+                cameraId    = device.id,
+                cameraName  = device.name,
                 type        = type.name,
                 message     = message,
                 timestampMs = nowMs,

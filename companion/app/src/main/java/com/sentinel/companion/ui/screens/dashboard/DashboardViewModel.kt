@@ -6,7 +6,7 @@ import com.sentinel.companion.data.model.Alert
 import com.sentinel.companion.data.model.DeviceProfile
 import com.sentinel.companion.data.model.DeviceState
 import com.sentinel.companion.data.model.SystemStatus
-import com.sentinel.companion.data.repository.CameraRepository
+import com.sentinel.companion.data.repository.AlertsRepository
 import com.sentinel.companion.data.repository.DeviceRepository
 import com.sentinel.companion.data.repository.PreferencesRepository
 import com.sentinel.companion.data.sync.SyncPhase
@@ -30,8 +30,8 @@ data class DashboardUiState(
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val cameraRepo: CameraRepository,
     private val deviceRepo: DeviceRepository,
+    private val alertsRepo: AlertsRepository,
     private val prefsRepo: PreferencesRepository,
 ) : ViewModel() {
 
@@ -40,10 +40,12 @@ class DashboardViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            // Single source of truth: DeviceRepository. Alerts + sync state live in
+            // AlertsRepository and don't carry their own device list.
             combine(
                 deviceRepo.devices,
-                cameraRepo.alerts,
-                cameraRepo.syncState,
+                alertsRepo.alerts,
+                alertsRepo.syncState,
                 prefsRepo.connectionPrefs,
             ) { devices, alerts, sync, conn ->
                 val online   = devices.count { it.stateEnum() == DeviceState.ONLINE }
@@ -84,6 +86,6 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun refresh() {
-        viewModelScope.launch { cameraRepo.refresh() }
+        viewModelScope.launch { alertsRepo.refresh() }
     }
 }
