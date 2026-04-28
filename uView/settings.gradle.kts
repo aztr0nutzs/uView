@@ -22,5 +22,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "SentinelHome"
 include(":app")
-include(":companion")
-project(":companion").projectDir = file("../companion/app")
