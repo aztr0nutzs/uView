@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.CircularProgressIndicator
@@ -69,6 +70,7 @@ import com.sentinel.companion.ui.theme.TextSecondary
 @Composable
 fun ConnectScreen(
     onConnected: () -> Unit,
+    onPairViaQr: () -> Unit = {},
     viewModel: ConnectViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -135,7 +137,26 @@ fun ConnectScreen(
                 letterSpacing = 1.sp,
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(28.dp))
+
+            // ── Pair via QR (primary path) ────────────────────────────────
+            PrimaryButton(
+                text = "PAIR_VIA_QR",
+                onClick = onPairViaQr,
+                icon = Icons.Filled.QrCodeScanner,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            Text(
+                text = "— OR ENTER MANUALLY —",
+                color = TextDisabled,
+                fontSize = 10.sp,
+                letterSpacing = 1.sp,
+            )
+
+            Spacer(Modifier.height(20.dp))
 
             // ── Connection form ──────────────────────────────────────────────
             Box(

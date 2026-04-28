@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Sentinel Companion</string>
+    <string name="app_name">uView Companion</string>
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_cameras">Cameras</string>
     <string name="nav_alerts">Alerts</string>

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,6 +70,7 @@ import com.sentinel.app.ui.theme.WarningAmber
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateDiagnostics: () -> Unit,
+    onNavigatePairCompanion: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -88,6 +90,7 @@ fun SettingsScreen(
         settings              = settings,
         onNavigateBack        = onNavigateBack,
         onNavigateDiagnostics = onNavigateDiagnostics,
+        onNavigatePairCompanion = onNavigatePairCompanion,
         onSetDarkTheme        = viewModel::setDarkTheme,
         onSetAutoReconnect    = viewModel::setAutoReconnect,
         onSetNotifications    = viewModel::setNotifications,
@@ -109,6 +112,7 @@ private fun SettingsContent(
     settings: AppPreferences,
     onNavigateBack: () -> Unit,
     onNavigateDiagnostics: () -> Unit,
+    onNavigatePairCompanion: () -> Unit = {},
     onSetDarkTheme: (Boolean) -> Unit,
     onSetAutoReconnect: (Boolean) -> Unit,
     onSetNotifications: (Boolean) -> Unit,
@@ -216,6 +220,19 @@ private fun SettingsContent(
                         onCheckedChange = onSetAppLock,
                         iconTint = WarningAmber,
                         iconBg = WarningAmber.copy(alpha = 0.12f)
+                    )
+                }
+            }
+
+            // ── Companion App ────────────────────────────────────────────
+            item {
+                SectionCard(title = "Companion App") {
+                    SettingsNavRow(
+                        icon = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.QrCode2),
+                        iconTint = TextPrimary,
+                        title = "Pair Companion",
+                        subtitle = "Generate a QR code to pair the Sentinel Companion app on another device",
+                        onClick = onNavigatePairCompanion,
                     )
                 }
             }
@@ -383,7 +400,7 @@ private fun SettingsPreview() {
     SentinelTheme {
         SettingsContent(
             settings = AppPreferences(),
-            onNavigateBack = {}, onNavigateDiagnostics = {},
+            onNavigateBack = {}, onNavigateDiagnostics = {}, onNavigatePairCompanion = {},
             onSetDarkTheme = {}, onSetAutoReconnect = {}, onSetNotifications = {},
             onSetLocalOnly = {}, onSetDataSaver = {}, onSetDiagnosticsLogging = {},
             onSetNetworkScan = {}, onSetAppLock = {}

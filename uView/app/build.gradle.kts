@@ -113,6 +113,9 @@ dependencies {
     // Logging
     implementation(libs.timber)
 
+    // Companion pairing — QR generation
+    implementation(libs.zxing.core)
+
     // Debug tooling
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

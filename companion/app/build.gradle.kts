@@ -118,6 +118,13 @@ dependencies {
     // Security - Keystore-backed encryption + BiometricPrompt
     implementation(libs.androidx.biometric)
 
+    // Pairing — QR decode (from camera frames) and CameraX preview
+    implementation(libs.zxing.core)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
     // Debug tooling
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

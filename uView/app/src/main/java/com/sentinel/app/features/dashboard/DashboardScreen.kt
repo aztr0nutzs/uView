@@ -31,8 +31,10 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PersonPin
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.SettingsOverscan
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.ui.res.painterResource
@@ -69,7 +71,9 @@ import com.sentinel.app.ui.components.SectionCard
 import com.sentinel.app.ui.components.TacticalFramePanel
 import com.sentinel.app.ui.preview.SampleData
 import com.sentinel.app.ui.theme.BackgroundDeep
+import com.sentinel.app.ui.theme.CyanAccent
 import com.sentinel.app.ui.theme.CyanPrimary
+import com.sentinel.app.ui.theme.GreenOnline
 import com.sentinel.app.ui.theme.OrangePrimary
 import com.sentinel.app.ui.theme.RecordingRed
 import com.sentinel.app.ui.theme.SentinelTheme
@@ -95,6 +99,7 @@ fun DashboardScreen(
     onNavigateSettings: () -> Unit,
     onNavigateDiscovery: () -> Unit,
     onNavigateCameraDetail: (String) -> Unit,
+    onNavigatePairCompanion: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -107,7 +112,8 @@ fun DashboardScreen(
         onNavigateEvents = onNavigateEvents,
         onNavigateSettings = onNavigateSettings,
         onNavigateDiscovery = onNavigateDiscovery,
-        onNavigateCameraDetail = onNavigateCameraDetail
+        onNavigateCameraDetail = onNavigateCameraDetail,
+        onNavigatePairCompanion = onNavigatePairCompanion
     )
 }
 
@@ -120,7 +126,8 @@ private fun DashboardContent(
     onNavigateEvents: () -> Unit,
     onNavigateSettings: () -> Unit,
     onNavigateDiscovery: () -> Unit,
-    onNavigateCameraDetail: (String) -> Unit
+    onNavigateCameraDetail: (String) -> Unit,
+    onNavigatePairCompanion: () -> Unit = {}
 ) {
     val feedRooms = buildList {
         add("ALL_NODES")
@@ -152,7 +159,11 @@ private fun DashboardContent(
             }
             item {
                 RoomChipRow(rooms = feedRooms)
-                Spacer(Modifier.height(34.dp))
+                Spacer(Modifier.height(20.dp))
+            }
+            item {
+                CompanionPairCard(onClick = onNavigatePairCompanion)
+                Spacer(Modifier.height(28.dp))
             }
             item {
                 Row(
@@ -611,6 +622,58 @@ private fun StatCard(
 // ─────────────────────────────────────────────────────────────────────────────
 // QuickActionsRow
 // ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun CompanionPairCard(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceBase)
+            .border(1.dp, GreenOnline.copy(alpha = 0.55f))
+            .drawBehind {
+                drawRect(
+                    color = CyanAccent.copy(alpha = 0.85f),
+                    topLeft = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height),
+                )
+            }
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(GreenOnline.copy(alpha = 0.10f))
+                .border(1.dp, GreenOnline.copy(alpha = 0.55f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Default.QrCode2, null, tint = GreenOnline)
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "PAIR_COMPANION_APP",
+                color = CyanAccent,
+                fontWeight = FontWeight.Black,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                letterSpacing = 1.sp,
+                fontSize = 14.sp,
+            )
+            Text(
+                text = "Generate QR — scan from the uView companion to link this hub.",
+                color = TextSecondary,
+                fontSize = 11.sp,
+                letterSpacing = 0.4.sp,
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            tint = CyanAccent,
+        )
+    }
+}
 
 @Composable
 private fun QuickActionsRow(

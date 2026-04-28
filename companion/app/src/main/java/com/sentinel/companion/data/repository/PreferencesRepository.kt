@@ -38,6 +38,15 @@ class PreferencesRepository @Inject constructor(
         val STREAM_QUALITY       = stringPreferencesKey("stream_quality")
         val BIOMETRIC_LOCK       = booleanPreferencesKey("biometric_lock")
         val LOCAL_ONLY_MODE      = booleanPreferencesKey("local_only_mode")
+        val PAIRED_AUTH_TOKEN    = stringPreferencesKey("paired_auth_token")
+    }
+
+    val pairedAuthToken: Flow<String> = context.dataStore.data.map {
+        it[Keys.PAIRED_AUTH_TOKEN] ?: ""
+    }
+
+    suspend fun savePairedHubAuthToken(encryptedToken: String) {
+        context.dataStore.edit { it[Keys.PAIRED_AUTH_TOKEN] = encryptedToken }
     }
 
     val connectionPrefs: Flow<ConnectionPrefs> = context.dataStore.data.map { prefs ->

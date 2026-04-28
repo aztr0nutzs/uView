@@ -17,6 +17,9 @@ coroutines = "1.8.1"
 serialization = "1.7.0"
 coil = "2.6.0"
 timber = "5.0.1"
+okhttp = "4.12.0"
+zxingCore = "3.5.3"
+camerax = "1.3.4"
 
 [libraries]
 # Core
@@ -71,6 +74,19 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 # Timber
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+# OkHttp (used by companion sync)
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
+# ZXing — QR code encode/decode (pure Java)
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxingCore" }
+
+# CameraX — used by companion for QR scanner preview
+androidx-camera-core    = { group = "androidx.camera", name = "camera-core",    version.ref = "camerax" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view    = { group = "androidx.camera", name = "camera-view",    version.ref = "camerax" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

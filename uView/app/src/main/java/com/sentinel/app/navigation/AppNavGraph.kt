@@ -16,6 +16,7 @@ import com.sentinel.app.features.diagnostics.DiagnosticsScreen
 import com.sentinel.app.features.discovery.DiscoveryScreen
 import com.sentinel.app.features.events.EventsScreen
 import com.sentinel.app.features.multiview.MultiViewScreen
+import com.sentinel.app.features.pairing.PairingScreen
 import com.sentinel.app.features.settings.SettingsScreen
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ object Routes {
     const val SETTINGS       = "settings"
     const val DISCOVERY      = "discovery"
     const val DIAGNOSTICS    = "diagnostics"
+    const val PAIR_COMPANION = "pair_companion"
 
     // Parametrised routes
     const val CAMERA_DETAIL  = "camera_detail/{cameraId}"
@@ -61,7 +63,8 @@ fun AppNavGraph(
                 onNavigateEvents       = { navController.navigate(Routes.EVENTS) },
                 onNavigateSettings     = { navController.navigate(Routes.SETTINGS) },
                 onNavigateDiscovery    = { navController.navigate(Routes.DISCOVERY) },
-                onNavigateCameraDetail = { id -> navController.navigate(Routes.cameraDetail(id)) }
+                onNavigateCameraDetail = { id -> navController.navigate(Routes.cameraDetail(id)) },
+                onNavigatePairCompanion = { navController.navigate(Routes.PAIR_COMPANION) }
             )
         }
 
@@ -117,8 +120,14 @@ fun AppNavGraph(
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 onNavigateBack        = { navController.popBackStack() },
-                onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) }
+                onNavigateDiagnostics  = { navController.navigate(Routes.DIAGNOSTICS) },
+                onNavigatePairCompanion = { navController.navigate(Routes.PAIR_COMPANION) }
             )
+        }
+
+        // ── Pair Companion ────────────────────────────────────────────────
+        composable(Routes.PAIR_COMPANION) {
+            PairingScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         // ── Discovery / Network Scan ──────────────────────────────────────

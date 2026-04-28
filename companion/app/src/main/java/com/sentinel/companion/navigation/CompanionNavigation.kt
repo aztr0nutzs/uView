@@ -37,6 +37,7 @@ import com.sentinel.companion.ui.screens.connect.ConnectScreen
 import com.sentinel.companion.ui.screens.dashboard.DashboardScreen
 import com.sentinel.companion.ui.screens.devicesettings.DeviceSettingsScreen
 import com.sentinel.companion.ui.screens.devicelist.DeviceListScreen
+import com.sentinel.companion.ui.screens.pairing.QrScanScreen
 import com.sentinel.companion.ui.screens.settings.SettingsScreen
 import com.sentinel.companion.ui.screens.setup.SetupWizardScreen
 import com.sentinel.companion.ui.screens.stream.StreamViewerActivity
@@ -57,6 +58,7 @@ object Routes {
     const val ALERTS          = "alerts"
     const val SETTINGS        = "settings"
     const val SETUP_WIZARD    = "setup_wizard"
+    const val PAIR_QR         = "pair_qr"
     const val DEVICE_SETTINGS = "device_settings/{deviceId}"
 
     fun deviceSettings(deviceId: String) = "device_settings/$deviceId"
@@ -84,7 +86,19 @@ fun CompanionNavHost(startDestination: String = Routes.CONNECT) {
                     navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.CONNECT) { inclusive = true }
                     }
-                }
+                },
+                onPairViaQr = { navController.navigate(Routes.PAIR_QR) },
+            )
+        }
+
+        composable(Routes.PAIR_QR) {
+            QrScanScreen(
+                onPaired = {
+                    navController.navigate(Routes.DASHBOARD) {
+                        popUpTo(Routes.CONNECT) { inclusive = true }
+                    }
+                },
+                onCancel = { navController.popBackStack() },
             )
         }
 
