@@ -37,6 +37,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.SettingsOverscan
 import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.res.painterResource
 import com.sentinel.app.R
 import androidx.compose.material3.Icon
@@ -625,53 +627,58 @@ private fun StatCard(
 
 @Composable
 private fun CompanionPairCard(onClick: () -> Unit) {
-    Row(
+    Button(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .background(SurfaceBase)
-            .border(1.dp, GreenOnline.copy(alpha = 0.55f))
+            .border(1.dp, GreenOnline.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
             .drawBehind {
                 drawRect(
                     color = CyanAccent.copy(alpha = 0.85f),
                     topLeft = androidx.compose.ui.geometry.Offset(0f, 0f),
                     size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height),
                 )
-            }
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            },
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = SurfaceBase,
+            contentColor = TextPrimary,
+        ),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(GreenOnline.copy(alpha = 0.10f))
-                .border(1.dp, GreenOnline.copy(alpha = 0.55f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Default.QrCode2, null, tint = GreenOnline)
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "PAIR_COMPANION_APP",
-                color = CyanAccent,
-                fontWeight = FontWeight.Black,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                letterSpacing = 1.sp,
-                fontSize = 14.sp,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(GreenOnline.copy(alpha = 0.10f))
+                    .border(1.dp, GreenOnline.copy(alpha = 0.55f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Default.QrCode2, null, tint = GreenOnline)
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "PAIR COMPANION APP",
+                    color = CyanAccent,
+                    fontWeight = FontWeight.Black,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    letterSpacing = 1.sp,
+                    fontSize = 14.sp,
+                )
+                Text(
+                    text = "Tap to generate a fresh QR code for a companion device.",
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.4.sp,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = CyanAccent,
             )
-            Text(
-                text = "Generate QR — scan from the uView companion to link this hub.",
-                color = TextSecondary,
-                fontSize = 11.sp,
-                letterSpacing = 0.4.sp,
-            )
         }
-        Icon(
-            Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = null,
-            tint = CyanAccent,
-        )
     }
 }
 

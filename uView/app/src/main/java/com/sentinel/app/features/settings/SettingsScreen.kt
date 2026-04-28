@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +62,7 @@ import com.sentinel.app.ui.components.SettingsNavRow
 import com.sentinel.app.ui.components.SettingsToggleRow
 import com.sentinel.app.ui.theme.BackgroundDeep
 import com.sentinel.app.ui.theme.CyanSubtle
+import com.sentinel.app.ui.theme.SurfaceBase
 import com.sentinel.app.ui.theme.SentinelTheme
 import com.sentinel.app.ui.theme.TextDisabled
 import com.sentinel.app.ui.theme.TextPrimary
@@ -227,13 +230,33 @@ private fun SettingsContent(
             // ── Companion App ────────────────────────────────────────────
             item {
                 SectionCard(title = "Companion App") {
-                    SettingsNavRow(
-                        icon = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.QrCode2),
-                        iconTint = TextPrimary,
-                        title = "Pair Companion",
-                        subtitle = "Generate a QR code to pair the Sentinel Companion app on another device",
+                    Button(
                         onClick = onNavigatePairCompanion,
-                    )
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SurfaceBase, contentColor = TextPrimary),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .background(CyanSubtle.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.QrCode2),
+                                    contentDescription = null,
+                                    tint = TextPrimary,
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = "Pair Companion", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                                Text(text = "Tap to generate a fresh QR code to pair the Sentinel Companion app.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                            }
+                        }
+                    }
                 }
             }
 

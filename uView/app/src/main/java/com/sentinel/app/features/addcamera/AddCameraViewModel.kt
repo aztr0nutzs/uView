@@ -12,6 +12,7 @@ import com.sentinel.app.domain.model.StreamTransport
 import com.sentinel.app.domain.model.isSelectableInShipBuild
 import com.sentinel.app.domain.repository.CameraRepository
 import com.sentinel.app.domain.service.CameraConnectionTester
+import com.sentinel.app.data.playback.PlaybackManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -107,7 +108,8 @@ data class AddCameraUiState(
 @HiltViewModel
 class AddCameraViewModel @Inject constructor(
     private val cameraRepository: CameraRepository,
-    private val connectionTester: CameraConnectionTester
+    private val connectionTester: CameraConnectionTester,
+    private val playbackManager: PlaybackManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddCameraUiState())
@@ -200,6 +202,17 @@ class AddCameraViewModel @Inject constructor(
         _state.update { it.copy(isSaving = true) }
         val camera = buildDraftCamera(_state.value)
         cameraRepository.saveCamera(camera)
+        // Attempt to start playback immediately so newly added cameras begin streaming
+        try {
+            playbackManager.startCamera(camera)
+        } catch (e: Exception) {
+            // Non-fatal: log and continue — UI will still show saved camera
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                // update state with a non-blocking validation error if needed
+                _state.update { it.copy(isSaving = false, saveSuccess = true, validationErrors = it.validationErrors + ("playback" to "Failed to start stream: ${e.message}")) }
+            }
+            return@launch
+        }
         _state.update { it.copy(isSaving = false, saveSuccess = true) }
     }
 
